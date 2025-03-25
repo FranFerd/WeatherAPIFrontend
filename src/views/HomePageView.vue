@@ -1,6 +1,6 @@
 <script setup>
-
+    import Introduction from '@/components/Introduction.vue';
 </script>
 <template>
-    <h1>This is my project Weather API</h1>
+    <Introduction></Introduction>
 </template>
