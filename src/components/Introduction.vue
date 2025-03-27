@@ -24,7 +24,7 @@
     <p>This application is aimed at a few things:</p>
 </template>
 
-<style>
+<style scoped>
 
 .signInUp{
     margin: 80px;

@@ -44,7 +44,7 @@
 
 </template>
 
-<style>
+<style scoped>
 
 .accountBox{
   display: flex;
@@ -59,6 +59,7 @@
   .menuItems {
     list-style: none;
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-evenly;
     li {
       margin: 20px;
