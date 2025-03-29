@@ -1,7 +1,9 @@
 <script setup>
 import { ref } from 'vue'
 import { login } from '@/authService/auth'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const credentials = ref({
   username: '',
   password: ''
@@ -9,10 +11,14 @@ const credentials = ref({
 
 async function handleLogin() {
   try {
-    await login(credentials.value)
+    const response =  await login(credentials.value)
+    console.log('Login successful!', response)
     // Redirect on success
+    router.push('/home')
   } catch (error) {
-    alert('Login failed')
+    console.error('Full error:', error)
+    console.error('Response data:', error.response?.data)
+    alert(error.response?.data?.msg || 'Login failed' + error.message)
   }
 }
 </script>

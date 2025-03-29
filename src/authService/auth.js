@@ -20,7 +20,13 @@ function clearAuth() {
 
 async function login(credentials) {
   try {
-    const response = await axios.post('http://localhost:5000/login', credentials)
+    const response = await axios.post('http://localhost:5000/login', credentials,
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    )
     setAuth(response.data.access_token)
     return true
   } catch (error) {

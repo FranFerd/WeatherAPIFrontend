@@ -2,13 +2,18 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomePageView from '@/views/HomePageView.vue'
 import WeatherTodayView from '@/views/WeatherTodayView.vue'
 import WeatherForWeekVIew from '@/views/WeatherForWeekVIew.vue'
-import { isAuthenticated } from '@/authService/auth'
+import { isAuthenticated, init } from '@/authService/auth'
 import AutenticationView from '@/views/AutenticationView.vue'
 
+init()
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    {
+      path: '/',
+      redirect: '/home'
+    },
     {
       path: '/home',
       name: 'home',
