@@ -42,22 +42,21 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to) => {
-  // 1. Always allow navigation to non-protected routes
-  if (!to.meta.requiresAuth) {
-    return true // Continue navigation
+router.beforeEach(async(to) => {
+  if (isAuthenticated.value === null) {
+    await init()
   }
 
-  // 2. Check authentication for protected routes
-  if (!isAuthenticated.value) {
-    // 3. Redirect to login with return URL
+  if(to.meta.hideForAuth && isAuthenticated.value){
+    return '/home'
+  }
+
+  if(to.meta.requiresAuth && !isAuthenticated.value){
     return {
       path: '/login',
-      query: { redirect: to.fullPath } // Save where they came from
+      query: {redirect: to.fullPath}
     }
   }
-
-  // 4. Allow navigation for authenticated users
   return true
 })
 export default router
