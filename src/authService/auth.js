@@ -20,7 +20,13 @@ function clearAuth() {
 
 async function login(credentials) {
   try {
-    const response = await axios.post('http://localhost:5000/login', credentials)
+    const response = await axios.post('http://localhost:5000/login', credentials,
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    )
     setAuth(response.data.access_token)
     return true
   } catch (error) {
@@ -29,10 +35,26 @@ async function login(credentials) {
   }
 }
 
-function init() {
-  if (authToken.value) {
-    axios.defaults.headers.common['Authorization'] = `Bearer ${authToken.value}`
+async function logout(){
+  try{
+    await axios.post('https://localhost:5000/logout', {},{
+      headers: {
+        Authorization: `Bearer ${authToken.value}`
+      }
+    })
+  } finally{
+    clearAuth()
+    window.location.assign('/login?logout=sucess')
   }
 }
 
-export { isAuthenticated, authToken, login, clearAuth, init }
+
+
+function init() {
+  if (authToken.value) {
+    axios.defaults.headers.common['Authorization'] = `Bearer ${authToken.value}`
+    isAuthenticated.value = true
+  }
+}
+
+export { isAuthenticated, authToken, login, clearAuth, init, logout }

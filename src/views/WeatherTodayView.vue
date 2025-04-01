@@ -29,9 +29,9 @@
             else {return false}
         }
         catch(error){
-            message.value = 'Error fetching. Incorrect address'
-            console.error(error)
-        }
+                message.value = 'Error fetching.'
+                console.error(error)
+            }
     }
 
     async function fetchWeatherToday(location) {   
