@@ -1,6 +1,8 @@
 <script setup>
-    import Introduction from '@/components/Introduction.vue';
+    import HomeIntroduction from '@/components/HomeIntroduction.vue';
+    import HomeAppFunctions from '@/components/HomeAppFunctions.vue';
 </script>
 <template>
-    <Introduction></Introduction>
+    <HomeIntroduction></HomeIntroduction>
+    <HomeAppFunctions></HomeAppFunctions>
 </template>
