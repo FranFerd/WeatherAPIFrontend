@@ -27,7 +27,7 @@ async function handleLogin() {
     const redirect = route.query.redirect || '/home'
     setTimeout(() => {
       router.push(redirect)
-    }, 2000);
+    }, 1500);
 
   } catch (error) {
     console.error('Full error:', error)
@@ -53,9 +53,9 @@ async function handleLogin() {
       <label class="not-logged-in">Not logged in?</label>
       <button class="signup-button">Sign up</button>
     </form>
-  </div>
-  <div class="message">
+    <div class="message">
     {{ message }}
+    </div>
   </div>
 
 </template>
@@ -129,8 +129,7 @@ async function handleLogin() {
     cursor: pointer;
   }
   .message{
-    position: absolute;
-    left: 30%;
+    /* position: relative; */
     margin-top: 2em;
     font-size: 2em;
     color: rgb(0, 163, 0);

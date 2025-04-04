@@ -88,6 +88,7 @@
 <style scoped>
     .weather-today{
         text-align: center;
+        font-size: 3em;
     }
 
     .error-message{

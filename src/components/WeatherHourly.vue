@@ -87,7 +87,7 @@
 
 <template>
     <br>
-    <h2 class="hourly-info-label">Hourly Info</h2>
+    <h3 class="hourly-info-label">Hourly Info</h3>
     <div class="weather-display-container">
         <div class="feels-like-label">feels like</div>
         <div class="feels-like-line"></div>
@@ -115,6 +115,7 @@
 
     .hourly-info-label{
         margin-left: 30px;
+        font-size: 2em;
     }
     
     .weather-display-container{
