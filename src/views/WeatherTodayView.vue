@@ -6,9 +6,11 @@
     import { useRoute } from 'vue-router';
 
     const data = ref(null)
+    const uvindexAvg = ref(0)
     const dataHourly = ref(null)
     const dataGeneral = ref(null)
     const addressUrl = ref(null)
+    const resolvedAddress = ref(null)
     const message = ref()
     const route = useRoute()
     const props = defineProps({
@@ -26,11 +28,24 @@
         try{
             const response = await axios.get(`http://127.0.0.1:5000/weather/today/hourly/check-address/${location}`)
             if (response.data) return true
-            else {return false}
+            return false
         }
         catch(error){
-                message.value = 'Error fetching.'
-                console.error(error)
+            if(error.response){
+                if(error.response.data?.message === 'Incorrect location'){
+                    message.value = 'Incorrect location'
+                }
+                else{
+                    message.value = 'Error checking address'
+                }
+            }
+            else if(error.request){
+                message.value = 'Network error - no response'
+            }
+            else{
+                message.value = 'Request setup error'
+            }
+            console.error(error)
             }
     }
 
@@ -45,29 +60,47 @@
     }
 
     function setDataGeneral(data){
-        dataGeneral.value = {
-            "description" : data.conditions,
-            "feelsLike" : Math.floor(data.feelslike) + '℃',
-            "temperatureMax" : Math.floor(data.tempmax) + '℃',
-            "temperatureMin" : Math.floor(data.tempmin) + '℃',
-            "temperatureAvg" : Math.floor(data.temp) + '℃',
-            "precipitationType" : data.preciptype?.join(', ') || "-"
+        if(data){
+            dataGeneral.value = {
+                "description" : data.conditions,
+                "feelsLikeAvg" : Math.floor(data.feelslike) + '℃',
+                "feelsLikeMax" : Math.floor(data.feelslikemax) + '℃',
+                "feelsLikeMin" : Math.floor(data.feelslikemin) + '℃',
+                "temperatureMax" : Math.floor(data.tempmax) + '℃',
+                "temperatureMin" : Math.floor(data.tempmin) + '℃',
+                "temperatureAvg" : Math.floor(data.temp) + '℃',
+                "precipitationType" : data.preciptype?.join(', ') || "-",
+                "humidity" : Math.floor(data.humidity) + '%',
+                "windSpeedMean" : Math.floor(data.windspeedmean) + ' m/s',
+                "uvindexAvg" : Math.floor(uvindexAvg.value/24),
+                "uvindexMax" : data.uvindex
+            }
         }
     }
 
     onMounted(async() => {
         try{
-            if (checkAddress(addressUrl.value)){
-                const weatherData = await fetchWeatherToday(addressUrl.value)
-                data.value = weatherData
-                setDataGeneral(weatherData)
+
+            const isValidAddress = await checkAddress(addressUrl.value) 
+
+            if (isValidAddress){
+                const fetchedWeatherData = await fetchWeatherToday(addressUrl.value)
+                resolvedAddress.value = fetchedWeatherData.resolvedAddress
+                data.value = fetchedWeatherData.days[0]
+                dataHourly.value = fetchedWeatherData.days[0].hours
+
+                for(let i = 0; i < dataHourly.value.length; i++){
+                    uvindexAvg.value = uvindexAvg.value + dataHourly.value[i].uvindex
+                }
+                setDataGeneral(data.value)
             }
             else{
-                console.log('No fucking way')
+                message.value = 'Incorrect location'
             }
         }
         catch(error){
             console.error('Error: ', error)
+            message.value = 'Failed to load weather data'
             data.value = []
         }
     })
@@ -75,10 +108,11 @@
 
 <template>
     <div class="weather-info" v-if="!message">
-        <h1 class="weather-today" v-if="data">{{ data.datetime }} (Today) {{ address }}</h1>
+        <p class="weather-today" v-if="data">{{ data.datetime }}</p>
+        <p class="weather-today">{{ resolvedAddress }}</p>
         <hr>
-        <WeatherHourly v-if="data" :data="data"></WeatherHourly>
-        <WeatherTodayGeneral v-if="dataGeneral" :data="dataGeneral"></WeatherTodayGeneral>
+        <WeatherHourly v-if="dataHourly" :data="data"></WeatherHourly>
+        <WeatherTodayGeneral v-if="dataGeneral" :dataGeneral="dataGeneral"></WeatherTodayGeneral>
     </div>
     <div class="error-message">
         <p>{{ message }}</p>

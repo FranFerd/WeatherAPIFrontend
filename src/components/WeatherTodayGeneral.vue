@@ -1,18 +1,46 @@
 <script setup>
+import { onMounted } from 'vue'
+
 
 const props = defineProps({
-    data: {
+    dataGeneral: {
         type: Object
     }
 })
 
+// const 
+
+// onMounted(() => {
+//     const cachedAttributes = props.dataGeneral? {
+//     description: props.dataGeneral.conditions,
+//     feelsLike: `${Math.floor(props.dataGeneral.feelslike)}℃`,
+//     feelsLikeMax: `${Math.floor(props.dataGeneral.feelslikemax)}℃`,
+//     feelsLikeMin: `${Math.floor(props.dataGeneral.feelslikemin)}℃`,
+//     temperatureMax: `${Math.floor(props.dataGeneral.tempmax)}℃`,
+//     temperatureMin: `${Math.floor(props.dataGeneral.tempmin)}℃`,
+//     temperatureAvg: `${Math.floor(props.dataGeneral.temp)}℃`,
+//     precipitationType: props.dataGeneral.preciptype?.join(', ') || "-",
+//     humidity: `${Math.floor(props.dataGeneral.humidity)}%`,
+//     windSpeedMean: `${Math.floor(props.dataGeneral.windspeedmean)} m/s`,
+//     uvindexAvg: Math.floor(props.dataGeneral.uvindexAvg / 24),
+//     uvindexMax: props.dataGeneral.uvindex
+//     } : null
+// })
+
+
 const labelMap = {
     description: 'Description',
-    feelsLike: 'Feels Like',
+    feelsLikeAvg: 'Feels Like avg',
+    feelsLikeMax : 'Feels like max',
+    feelsLikeMin : 'Feels like min',
     temperatureMax: 'Max Temp',
     temperatureMin: 'Min Temp',
     temperatureAvg: 'Avg Temp',
-    precipitationType: 'Precipitation'
+    precipitationType: 'Precipitation',
+    humidity : 'humidity',
+    uvindexAvg : 'Avg UV index',
+    uvindexMax : 'Max UV index'
+
 }
 
 </script>
@@ -31,7 +59,7 @@ const labelMap = {
     </div>
 </div>
  <div class="weather-average-stats">
-    <div class="stats-item" v-for="(value, key) in props.data">
+    <div class="stats-item" v-for="(value, key) in props.dataGeneral">
         <div class="item-label">
             <u>{{ labelMap[key] || key }}</u>
         </div>
@@ -65,7 +93,7 @@ const labelMap = {
     margin-top: 3px;
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
+    justify-content: space-evenly;
     gap: 16px;
     padding: 12px;
     background: #f5f5f5;
@@ -75,7 +103,7 @@ const labelMap = {
 .stats-item{
     display: flex;
     flex-direction: column;
-    flex: 0 0 auto;  /*Prevents items from shrinking/growing */
+    flex: 0 0 auto;
     padding: 10px 20px;
     width: 130px;
     height: 70px;
@@ -88,6 +116,7 @@ const labelMap = {
 
 .item-label{
     margin-bottom: 5px;
+    color: rgb(121, 120, 120);
 }
 
 </style>

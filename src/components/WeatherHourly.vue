@@ -1,5 +1,5 @@
 <script setup>
-    import { ref, onMounted, computed, nextTick } from 'vue';
+    import { ref, onMounted, nextTick } from 'vue';
     import { weatherIcons } from '@/assets/icons/icons';
 
     const weatherToday = ref(null)
@@ -30,6 +30,8 @@
         if (weatherDescription.includes('rain')) return weatherIcons.rain
         if (weatherDescription.includes('clear-night')) return weatherIcons.clearNight
         if (weatherDescription.includes('clear-day')) return weatherIcons.clearDay
+        if (weatherDescription.includes('snow')) return weatherIcons.snow
+        if (weatherDescription.includes('fog')) return weatherIcons.fog
     }
 
     function getCurrentTimeString() {
