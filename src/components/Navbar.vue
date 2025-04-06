@@ -46,7 +46,7 @@
     <nav class="navbar">
       <ul class="menuItems">
         <li><a :class="{active: isActive('home')}" href='/home'>Home</a></li>
-        <li><a :class="{active: isActive('weather/today')}" href='/weather/today/grodno'>Weather today</a></li>
+        <li><a :class="{active: isActive('weather/today')}" href='/weather/today'>Weather today</a></li>
         <li><a :class="{active: isActive('weather/week')}" href='/weather/week'>Weather for a week</a></li>
         <li class="dropdown-wrapper">
           <div class="account-box-dropdown" @mouseenter="showDropdown = true" @mouseleave="showDropdown = false">
