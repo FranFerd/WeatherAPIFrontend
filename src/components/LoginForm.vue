@@ -8,6 +8,7 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 const message = ref(null)
+const isSignUp = ref(false)
 const credentials = ref({
   username: '',
   password: ''
@@ -35,10 +36,19 @@ async function handleLogin() {
     alert(error.response?.data?.msg || 'Login failed' + error.message)
   }
 }
+function handleSwitch(){
+  isSignUp.value = !isSignUp.value
+  console.log(isSignUp.value)
+}
+
+async function handleSignUp(){
+  
+}
+
 </script>
 
 <template>
-  <div class="login-container">
+  <div class="login-container" v-if="!isSignUp">
     <h1 class="login-label">Login</h1>
     <form @submit.prevent="handleLogin">
       <label for="username">Username(4-16 characters)</label>
@@ -49,9 +59,43 @@ async function handleLogin() {
       <div class="password-box">
         <input v-model="credentials.password" type="password" placeholder="Password" minlength="4" maxlength="16" id="password" class="password-input">
       </div>
-      <button type="submit" class="login-button">Login</button>
-      <label class="not-logged-in">Not logged in?</label>
-      <button class="signup-button">Sign up</button>
+      <div class="submit-box">
+        <button type="submit" class="login-button">Login</button>
+        <span class="switch-box">
+          <div class="switch-box__wrapper">
+            <label>Not logged in?</label>
+          </div>
+          <button type="button" class="signup-button" @click="handleSwitch">Sign up</button>
+        </span>
+      </div>
+      
+    </form>
+    <div class="message">
+    {{ message }}
+    </div>
+  </div>
+
+  <div class="login-container" v-if="isSignUp">
+    <h1 class="login-label">Sign up</h1>
+    <form @submit.prevent="handleSignUp">
+      <label for="username">Username(4-16 characters)</label>
+      <div class="username-box">
+        <input v-model="credentials.username" placeholder="Username" id="username" minlength="4" maxlength="16" class="username-input">
+      </div>
+      <label for="password">Password(4-16 characters)</label>
+      <div class="password-box">
+        <input v-model="credentials.password" type="password" placeholder="Password" minlength="4" maxlength="16" id="password" class="password-input">
+      </div>
+      <div class="submit-box">
+        <button type="submit" class="login-button">Create account</button>
+        <span class="switch-box">
+          <div class="switch-box__wrapper">
+            <label>Have an account?</label>
+          </div>
+          <button type="button" class="signup-button" @click="handleSwitch">Login</button>
+        </span>
+      </div>
+
     </form>
     <div class="message">
     {{ message }}
@@ -103,30 +147,32 @@ async function handleLogin() {
     margin-top: 10px;
     margin-bottom: 10px;
   }
-  .login-button{
-    margin-top: 10px;
+  .login-button, .signup-button{
     height: 30px;
     width: 80px;
     background-color: hsl(180, 100%, 50%);
     border-radius: 5px;
     border: none;
     cursor: pointer;
+    margin-right: auto;
     }
-  .login-button:hover{
+  .login-button:hover, .signup-button:hover{
     background-color: hsl(180, 100%, 40%);
     transition: background-color 0.3s ease
   }
-  .not-logged-in{
-    margin-left: 30.75%;
-    margin-right: 0.3em;
+  .submit-box{
+    display: flex;
+    margin-top: 10px;
   }
-  .signup-button{
-    height: 30px;
-    width: 80px;
-    background-color: hsl(180, 100%, 50%);
-    border-radius: 5px;
-    border: none;
-    cursor: pointer;
+  .switch-box{
+    display: flex;
+    flex-direction: row;
+    gap: 1em
+  }
+  .switch-box__wrapper{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
   .message{
     /* position: relative; */

@@ -29,7 +29,7 @@ watch(() => route.params.address, (newAddress) => {
 
 async function fetchWeatherToday(location) {   
     try{
-        const response = await axios.get(`http://127.0.0.1:5000/weather/today/hourly/${location}`)
+        const response = await axios.get(`http://127.0.0.1:5000/weather/hourly/${location}`)
         return response.data
     }
     catch(error){
