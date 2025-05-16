@@ -23,7 +23,7 @@ async function handleSearch(){
 
 async function checkAddress(location){
         try{
-            const response = await axios.get(`http://127.0.0.1:5000/weather/today/hourly/check-address/${location}`)
+            const response = await axios.get(`http://127.0.0.1:5000/weather/hourly/check-address/${location}`)
             if (response.data) return true
             return false
         }
