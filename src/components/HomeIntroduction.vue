@@ -1,74 +1,78 @@
 <script setup>
 import { computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 
 const auth = useAuthStore()
 const isLoggedIn = computed(() => auth.isLoggedIn)
+const router = useRouter()
+
+
 
 </script>
 
 <template>
-    <div class="welcomeFlex">
-        <h1 class="weather-api-app-name">
-            Weather API
-        </h1>
-        <p class="app-info">an application that will provide you all the necessary info about the weather</p>
-        <div class="authentication" v-if="!isLoggedIn">
-            <span class="signInUp">
-                <a href="/login">Sign in</a>
-            </span>
-            <span class="signInUp">
-                <a>Sign up</a>
-            </span>
+    <div class="introduction">
+        <div class="logo-container">
+            <img src="/src/assets/icons/logo.png" alt="Sunny Side Logo" class="logo" />
         </div>
+        <div class="quick-intro-text">
+            <div class="app-name">
+                <h1 class="app-info-text">SunnySide</h1>
+            </div>
+            <div class="app-info">
+                <p class="app-info-text">The weather app that will brighten your day!</p>
+                <p class="app-info-text">Get accurate and up-to-date weather information.</p>
+                <p class="app-info-text">Check the weather forecast for your location.</p>
+                <p class="app-info-text">Stay informed about the weather conditions.</p>
+                <p class="app-info-text">Plan your day with confidence.</p>
+                <p class="app-info-text">SunnySide is your go-to weather companion.</p>
+            </div>
+        </div>
+        <!-- <div class="quick-intro-text">
+            <p class="app-info">SunnySide will provide you all the necessary info about the weather.</p>
+        </div> -->
     </div>
     <br>
 </template>
 
 <style scoped>
 
-.welcomeFlex{
-    display: flex;
-    flex-direction: column;
-    height: 50%;
-    width: 100%;
-    color: #727272;
-    text-align: center;
-}
-.weather-api-app-name{
-    color: #0579feec;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 120px;
-}
-.app-info{
-    font-size: 80px;
-}
-.authentication{
+.introduction{
     display: flex;
     flex-wrap: wrap;
+    color: #727272;
+    text-align: center;
     justify-content: center;
-    gap: 500px;
+    gap: 50px;
+}
+    
+.logo{
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    transition: transform 0.3s, box-shadow 0.3s, filter 0.3s;
+}
+.logo:hover{
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    transform: scale(1.05);
+    filter: brightness(1.2);
+}
+.quick-intro-text{
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
+    width: 1000px;
+    height: 400px;
+}
+.app-info-text{
+    font-size: 30px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
 }
 
-.signInUp{
-    padding: 20px;
-    background-color: rgb(209, 240, 230);
-    border-radius: 20px;
-    cursor: pointer;
-}
-.signInUp a{
-    text-decoration: none;
-    font-size: 40px;
-    color: #8f8f8f;
-}
-
-.signInUp:hover{
-    background-color: rgb(143, 222, 197);
-    transition: background-color 0.3s;
-}
-.signInUp:hover a{
-    color: #5f5d5d;;
-    transition: color 0.3s;
-}
    
 </style>

@@ -5,6 +5,7 @@ import WeatherForWeekVIew from '@/views/WeatherForWeekVIew.vue'
 import { isAuthenticated, init } from '@/authService/auth'
 import AutenticationView from '@/views/AutenticationView.vue'
 import TestView from '@/views/TestView.vue'
+import WeatherSearchView from '@/views/WeatherSearchView.vue'
 
 init()
 
@@ -22,6 +23,12 @@ const router = createRouter({
       meta: {requiresAuth: false}
     },
     {
+      path: '/login',
+      name: 'login',
+      component: AutenticationView,
+      meta: {requiresAuth: false}
+    },
+    {
       path: '/weather/today/:address',
       name: 'weatherToday',
       component: WeatherTodayView,
@@ -35,10 +42,10 @@ const router = createRouter({
       meta: {requiresAuth: true}
     },
     {
-      path: '/login',
-      name: 'login',
-      component: AutenticationView,
-      meta: {requiresAuth: false}
+      path: '/weather/today',
+      name: 'searchLocation',
+      component: WeatherSearchView,
+      meta: {requiresAuth: true}
     },
     {
       path: '/test',
