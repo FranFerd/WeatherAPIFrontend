@@ -1,5 +1,5 @@
 <script setup>
-import { defineEmits, ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 
 const props = defineProps({
@@ -14,11 +14,11 @@ const props = defineProps({
 
 const emit = defineEmits(['delete-item', 'restore-item'])
 const searchQuery = ref('')
-const showDropdown = ref(false)
+const isShowDropdown = ref(false)
 
 function handleClickOutside(event) {
     if (event.target.closest('.dropdown-wrapper') === null) {
-        showDropdown.value = false
+        isShowDropdown.value = false
     }
 }
 
@@ -44,7 +44,7 @@ function handleDelete(key) {
 function handleRestoreItem(key) {
     console.log('Restoring item:', key)
     emit('restore-item', key)
-    showDropdown.value = false
+    isShowDropdown.value = false
     searchQuery.value = '' 
 }
 
@@ -76,8 +76,8 @@ onUnmounted(() => {
     <div class="add-more-container" v-if="Object.keys(props.deletedItems).length">
         <label class="add-more-label">Add more attributes</label>
         <div class="dropdown-wrapper">
-            <input type="text" v-model="searchQuery" @focus="showDropdown = true" placeholder="Search..." class="dropdown-input" >
-            <div v-if="showDropdown && filteredDeletedItems.length" class="dropdown-menu">
+            <input type="text" v-model="searchQuery" @focus="isShowDropdown = true" placeholder="Search..." class="dropdown-input" >
+            <div v-if="isShowDropdown && filteredDeletedItems.length" class="dropdown-menu">
                 <div 
                 v-for="item in filteredDeletedItems" 
                 :key="item.key"
