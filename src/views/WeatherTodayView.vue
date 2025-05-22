@@ -70,7 +70,9 @@ function setDataGeneral(data){
             "humidity" : Math.floor(data.humidity) + '%',
             "windSpeedMean" : Math.floor(data.windspeedmean) + ' m/s',
             "uvindexAvg" : Math.floor(uvindexAvg.value/24),
-            "uvindexMax" : data.uvindex
+            "uvindexMax" : data.uvindex,
+            "sunRise" : data.sunrise,
+            "sunSet" : data.sunset
         }
         dataGeneralCached.value = {...dataGeneral.value}
     }

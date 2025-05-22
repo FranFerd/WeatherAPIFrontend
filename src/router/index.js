@@ -36,14 +36,21 @@ const router = createRouter({
       meta: {requiresAuth: true}
     },
     {
-      path: '/weather/week',
+      path: '/weather/week/:address',
       name: 'weatherWeek',
       component: WeatherForWeekVIew,
+      props: true,
       meta: {requiresAuth: true}
     },
     {
       path: '/weather/today',
-      name: 'searchLocation',
+      name: 'searchLocationToday',
+      component: WeatherSearchView,
+      meta: {requiresAuth: true}
+    },
+    {
+      path: '/weather/week',
+      name: 'searchLocationWeek',
       component: WeatherSearchView,
       meta: {requiresAuth: true}
     },

@@ -1,9 +1,10 @@
 
 <script setup>
 import { ref } from 'vue'; 
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 const router = useRouter();
+const route = useRoute()
 const message = ref(null);
 const city = ref(null);
 
@@ -15,8 +16,15 @@ async function handleSearch(){
             message.value = 'Invalid address. Please try again.';
             return;
         }
-        router.push(`/weather/today/${formattedCity}`);
-    } else {
+
+        if(route.path.includes('today')){
+            router.push(`/weather/today/${formattedCity}`);
+        }
+        else if(route.path.includes('week')){
+            router.push(`/weather/week/${formattedCity}`);
+        }
+    } 
+    else {
         alert('Please enter a city name.');
     }
 }

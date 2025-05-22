@@ -33,8 +33,9 @@ const labelMap = {
     precipitationType: 'Precipitation',
     humidity : 'humidity',
     uvindexAvg : 'Avg UV index',
-    uvindexMax : 'Max UV index'
-    
+    uvindexMax : 'Max UV index',
+    sunRise : 'Sunrise',
+    sunSet : 'Sunset'    
 }
 
 function handleDelete(key) {
@@ -42,7 +43,6 @@ function handleDelete(key) {
 }
 
 function handleRestoreItem(key) {
-    console.log('Restoring item:', key)
     emit('restore-item', key)
     isShowDropdown.value = false
     searchQuery.value = '' 
@@ -202,7 +202,6 @@ onUnmounted(() => {
     flex: 0 0 auto;
     padding: 10px 20px;
     width: 130px;
-    height: 70px;
     background: #fff;
     border: 1px solid #ddd;
     border-radius: 4px;
