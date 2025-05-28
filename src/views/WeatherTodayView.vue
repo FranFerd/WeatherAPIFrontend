@@ -6,15 +6,16 @@ import { onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
 const data = ref(null)
-const uvindexAvg = ref(0)
 const dataHourly = ref(null)
 const dataGeneral = ref(null)
-const dataGeneralCached = ref(null)
-const dataGeneralDeleted = ref({})
 const addressUrl = ref(null)
 const resolvedAddress = ref(null)
-const message = ref()
+const message = ref(null)
 const route = useRoute()
+const uvIndexHourly = ref([])
+const highUvHours = ref([])
+const highUvHoursMessage = ref(null)
+const dayLength = ref(null)
 
 const props = defineProps({
     address : {
@@ -29,7 +30,7 @@ watch(() => route.params.address, (newAddress) => {
 
 async function fetchWeatherToday(location) {   
     try{
-        const response = await axios.get(`http://127.0.0.1:5000/weather/hourly/${location}`)
+        const response = await axios.get(`http://127.0.0.1:5000/weather/hourly/${location}/1`)
         return response.data
     }
     catch(error){
@@ -37,45 +38,78 @@ async function fetchWeatherToday(location) {
     }
 }
 
-function handleDeleteItem(key) {
-    if (key in dataGeneral.value) {
-        dataGeneralDeleted.value[key] = dataGeneralCached.value[key]
-        delete dataGeneral.value[key]
+function getUvDescription(uvIndex){
+    if (uvIndex <= 2) return 'Low'
+    if (uvIndex <=5) return 'Moderate' 
+    if (uvIndex <=7) return 'High'
+    if (uvIndex <=10) return 'Very High'
+    return 'Extreme'
+}
+
+function setUvIndexHourly(data){
+    for(let i = 0; i < data.value.length; i++){
+        uvIndexHourly.value.push({
+            "time": data.value[i].datetime,
+            "uvindex": data.value[i].uvindex,
+            "description": getUvDescription(data.value[i].uvindex)
+        })
     }
 }
 
-function handleRestoreItem(key){
-    if (key in dataGeneralDeleted.value) {
-        dataGeneral.value = {
-            ...dataGeneral.value,
-            [key]: dataGeneralDeleted.value[key]
-        };
-        
-        const { [key]: _, ...rest } = dataGeneralDeleted.value;
-        dataGeneralDeleted.value = rest;
+function showHighUvHours(uvDataHourly){
+    for (let hour of uvDataHourly){
+        if (hour.uvindex >= 6){
+            highUvHours.value.push(hour.time)
+        }
     }
+    highUvHoursMessage.value = `From ${highUvHours.value[0]} to ${highUvHours.value[highUvHours.value.length - 1]}`
+    
 }
 
 function setDataGeneral(data){
     if(data){
+        
+        const [sunRiseHours, sunRiseMinutes] = data.sunrise.split(':')
+        const [sunSetHours, sunSetMinutes] = data.sunset.split(':')
+
+        const sunRise = `${sunRiseHours}:${sunRiseMinutes}`
+        const sunSet = `${sunSetHours}:${sunSetMinutes}`
+    
         dataGeneral.value = {
             "description" : data.conditions,
-            "feelsLikeAvg" : Math.floor(data.feelslike) + '℃',
-            "feelsLikeMax" : Math.floor(data.feelslikemax) + '℃',
-            "feelsLikeMin" : Math.floor(data.feelslikemin) + '℃',
-            "temperatureMax" : Math.floor(data.tempmax) + '℃',
-            "temperatureMin" : Math.floor(data.tempmin) + '℃',
-            "temperatureAvg" : Math.floor(data.temp) + '℃',
-            "precipitationType" : data.preciptype?.join(', ') || "-",
-            "humidity" : Math.floor(data.humidity) + '%',
-            "windSpeedMean" : Math.floor(data.windspeedmean) + ' m/s',
-            "uvindexAvg" : Math.floor(uvindexAvg.value/24),
-            "uvindexMax" : data.uvindex,
-            "sunRise" : data.sunrise,
-            "sunSet" : data.sunset
+            ...(data.preciptype?.length && {precipitationType : data.preciptype.join(', ')}),
+            "uvindex" : `${data.uvindex} (${getUvDescription(data.uvindex)})`,
+            ...(highUvHours.value?.length && {highUvHours : highUvHoursMessage.value}),
+            "sunRise" : sunRise,
+            "sunSet" : sunSet,
+            "dayLength" : dayLength.value,
+            // The ... tries to spread the result only if it is a real object. If it’s false, nothing happens.
+            }
         }
-        dataGeneralCached.value = {...dataGeneral.value}
     }
+
+
+function calculateDayLength(){
+    const sunrise = data.value.sunrise
+    const sunset = data.value.sunset
+
+    const [a,b] = sunrise.split(':').map(Number)
+    const [d,e] = sunset.split(':').map(Number)
+
+    const sunriseSeconds = a*3600 + b*60
+    let sunsetSeconds = d*3600 + e*60
+
+    if (d < a){
+        sunsetSeconds += 86400
+        // Sunset after midnight
+    }
+
+    const differenceSeconds = sunsetSeconds - sunriseSeconds
+
+    const hours = Math.floor(differenceSeconds / 3600)
+    const minutes = Math.floor((differenceSeconds % 3600) / 60)
+
+    dayLength.value = `${hours}h:${minutes}m`
 }
 
 function roundUp(element,index,array){
@@ -89,11 +123,14 @@ onMounted(async() => {
         resolvedAddress.value = fetchedWeatherData.resolvedAddress
         data.value = fetchedWeatherData.days[0]
         dataHourly.value = fetchedWeatherData.days[0].hours || []
+        // Why || []?
         dataHourly.value.forEach(roundUp)
+        console.log(data.value)
+        console.log(dataHourly.value)
 
-        for(let i = 0; i < dataHourly.value.length; i++){
-            uvindexAvg.value = uvindexAvg.value + dataHourly.value[i].uvindex
-        }
+        setUvIndexHourly(dataHourly)
+        showHighUvHours(uvIndexHourly.value)
+        calculateDayLength()
         setDataGeneral(data.value)
     }
     catch(error){
@@ -110,12 +147,11 @@ onMounted(async() => {
     <p class="weather-today">{{ resolvedAddress }}</p>
 
     <hr>
+    <br><br><br>
     <WeatherHourly v-if="dataHourly" :data="data"></WeatherHourly>
+    <br><br><br>
     <WeatherTodayGeneral v-if="dataGeneral" 
-                         :dataGeneral="dataGeneral"
-                         :deletedItems="dataGeneralDeleted"
-                         @delete-item="handleDeleteItem"
-                         @restore-item="handleRestoreItem">
+                         :dataGeneral="dataGeneral">
     </WeatherTodayGeneral>
 </div>
 <div class="error-message">
