@@ -86,8 +86,9 @@ onMounted(async () => {
 </script>
 
 <template>
-<br>
-<h3 class="hourly-info-label">Hourly Info</h3>
+<div class="hourly-info-label-container">
+    <h3 class="hourly-info-label">Hourly Info</h3>
+</div>
 <div class="weather-display-container">
     <div class="feels-like-label">feels like</div>
     <div class="feels-like-line"></div>
@@ -109,17 +110,31 @@ onMounted(async () => {
     </div>
 </div>
 
+
 </template>
 
 <style scoped>
 
+.hourly-info-label-container{
+    background-color: rgb(171, 254, 184);
+    height: 3.5em;
+    position: relative;
+    border-top-right-radius: 15px;
+    border-top-left-radius: 15px;
+}
+
 .hourly-info-label{
     margin-left: 30px;
     font-size: 2em;
+    padding: 5px;
+    color: hsl(0, 0%, 15%);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .weather-display-container{
     position: relative;
+    z-index: 1;
+    margin-top: -1em;
 }
 
 .feels-like-label{
@@ -144,11 +159,10 @@ onMounted(async () => {
 .horizontal-scroll-container {
     display: flex;
     overflow-x: auto; /* Enables horizontal scrolling */
-    white-space: nowrap; /* Prevents items from wrapping */
-    gap: 16px; /* Adds space between items */
+    gap: 16px; 
     padding: 12px;
     background: #f5f5f5;
-    border-radius: 8px;
+    border-radius: 15px;
 }
 
 .scroll-item {
