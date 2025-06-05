@@ -2,12 +2,10 @@
 import { ref, onMounted, nextTick } from 'vue';
 import { weatherIcons } from '@/assets/icons/icons';
 
-const weatherToday = ref(null)
-const isLoading = ref(false)
-const dataHourly = ref([])
 const scrollContainer = ref(null)
+const dataHourly = ref([])
 const props = defineProps({
-    data : {
+    dataHourly : {
         type: Object,
         required: true
     }
@@ -29,27 +27,24 @@ function getWeatherIcon(weatherDescription) {
     return weatherIcons[iconKey]? weatherIcons[iconKey] : weatherIcons.defaultWeather;
 }
 
-function handleWheel(e) {
-    // Only scroll horizontally if there's horizontal content
-    if (scrollContainer.value.scrollWidth > scrollContainer.value.clientWidth) {
-        // Prevent vertical scrolling
-        e.preventDefault()
-        // Scroll horizontally instead
-        scrollContainer.value.scrollLeft += e.deltaY
+function handleWheel(e) {  // e is event, passed automatically when user uses mouse wheel.
+    if (scrollContainer.value.scrollWidth > scrollContainer.value.clientWidth) { // Only scroll horizontally if there's horizontal content
+        e.preventDefault() // Prevent vertical scrolling
+        scrollContainer.value.scrollLeft += e.deltaY // Scroll horizontally instead
     }
 }
 
 
 function getCurrentTimeString() {
     const now = new Date()
-    return `${now.getHours().toString().padStart(2,"0")}:00:00`
+    return `${now.getHours().toString().padStart(2,"0")}:00:00` // Pads with a leading zero if needed (e.g., "9" → "09") using .padStart(2, "0")
 }
 
 function scrollToCurrentTime(){
     if(!scrollContainer.value || !dataHourly.value) return
 
     const currentTime = getCurrentTimeString()
-    const index = dataHourly.value.findIndex(item => item.datetime === currentTime)
+    const index = dataHourly.value.findIndex(item => item.datetime === currentTime)  // Search through dataHourly and find item where item.datetime === currentTIme
 
     if(index !== -1){
         const container = scrollContainer.value;
@@ -65,18 +60,13 @@ function scrollToCurrentTime(){
 }
 
 onMounted(async () => {
-    isLoading.value = true
     try{
-        weatherToday.value = props.data
-        dataHourly.value = props.data.hours || []
-        await nextTick()
-        scrollToCurrentTime()
+        dataHourly.value = props.dataHourly  // Props are not ref, so .value is an error(undefined)
+        await nextTick() // Let the DOM fully render
+        scrollToCurrentTime() // Now scroll
     }
     catch(error){
         console.error('Failed to load weather: ', error)
-    }
-    finally{
-        isLoading.value = false
     }
 })  
 
