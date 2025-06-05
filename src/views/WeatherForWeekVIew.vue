@@ -29,80 +29,87 @@ async function fetchWeatherData(location){
         console.error(`Error: `, error)
         return null
     }
-
-}
-
-function getWeatherCondition(icons){
-    const weatherPriority = {
-        'thunderstorm' : 1,
-        'rain' : 2,
-        'snow' : 3,
-        'fog' : 4,
-        'partly-cloudy-day': 5,
-        'partly-cloudy-night': 5,
-        'cloudy': 6,
-        'clear-day': 7,
-        'clear-night': 7,
-        'wind': 8,
-        'hail': 9,
-        'defaultWeather': 10
-    }
-    
 }
 
 function refineData(data){
-    console.log(data[0])
     const date = data[0].datetime
-    const hours = data[0]. hours
-    
-    dataTodayRefined.value[date] = [
-        ['night'],
-        ['morning'],
-        ['afternoon'],
-        ['evening']
-    ]
+    const hours = data[0].hours
 
-    for(let i = 0; i < hours.length; i++){ // i is hour index
-        const temp = hours[i].temp
-        if (i <= 5){
-            dataTodayRefined.value[date][0].push(temp)
-        }
-        else if (i <= 11){
-            dataTodayRefined.value[date][1].push(temp)
-        }
-        else if (i <= 17){
-            dataTodayRefined.value[date][2].push(temp)
-        }
-        else{
-            dataTodayRefined.value[date][3].push(temp)
-        }
-
+    dataTodayRefined.value = {
+        [date]: [ // [date] is used because plain date would be a 'date' string, not 2025-06-05, for example.
+            ['night'],
+            ['morning'],
+            ['afternoon'],
+            ['evening']
+        ]
     }
-    dataTodayRefined.value['2025-06-04'].forEach(getAverage)
 
-    console.log(dataTodayRefined.value)
-
-
-    // dataWeeklyRefined.value = {
-    //     "2025-05-29": [
-    //         ["morning", 15, 13, 4, 'partially cloudy'],
-    //         ["afternoon", 20, 18, 5, 'sunny'],
-    //         ["evening", 18, 16, 5, 'cloudy'],
-    //         ["night", 14, 13, 2, 'clear-night']
-    //     ]
-    // }
+    // console.log doesn't create a snapshot of the object. Instead it logs a reference and what you see in the console is the CURRENT state of the object.
+    // console.log(JSON.parse(JSON.stringify(dataTodayRefined.value[date])))
+    // Combined these 2 functions create a copy of dataTodayRefined. Now it's completely new object with no reference to the original.
+    // No manipulations are done to it after, unlike dataTodayRefined, and it retains the original value; so it's a snapshot.
+    
+    if(dataTodayRefined.value[date]){
+        const itemsToPush = ['temp', 'feelslike', 'windspeed', 'icon']
+        let dataStartIndex = 1
+        for(let itemToPush of itemsToPush){
+            fillData(hours, itemToPush, date) 
+            //console.table shows clearer logs and a snapshot. Works best with arrays and plain objects.
+            // console.table(dataTodayRefined.value[date]) 
+            dataTodayRefined.value[date].forEach(element => getAverage(element, dataStartIndex))
+            dataStartIndex++
+        }
+    }
+    console.log(dataTodayRefined.value[date])
 }
 
-function getAverage(element, index, array){
-    const [label, ...temps] = element
-    if (temps.length === 0) return
-
-    const sum = temps.reduce((accumulator, value) => accumulator + Math.floor(value), 0) // accumulator = value + accumulator (both of previous step)(0 on the first) 
-    const average = Math.floor(sum/temps.length)
-
-    element.splice(1) // removes temperatures
-    element.push(average)
+function getAverage(element, valuesStartIndex){ 
+    const values = element.slice(valuesStartIndex) // extract portion of an array starting at valuesStartIndex
+    if (values.length === 0) return                // it shifts to the right every iteration to not delete average
     
+    let average
+    
+    if(typeof(values[0]) === 'number'){
+        const sum = values.reduce((accumulator, value) => accumulator + Math.floor(value), 0) // accumulator = value + accumulator (both of previous step)(0 on the first) 
+        average = Math.floor(sum/values.length)
+    }
+    else if(typeof(values[0] === 'string')){
+        const weatherPriorityListObject = getWeatherPriorityObject() 
+        average = values.reduce((initial, current) => {  // initial is the first value because nothing is passed at the end (unlike 0 in previous reduce)
+            return weatherPriorityListObject[current] > weatherPriorityListObject[initial] ? current : initial
+        })
+    }
+
+    element.splice(valuesStartIndex) // removes all values before pushing average
+    element.push(average)
+}
+
+function fillData(data, item, date){
+    for(let i = 0; i < data.length; i++){ // i is hour index(0-23)
+        const value = data[i][item]
+        if (i <= 5) dataTodayRefined.value[date][0].push(value) // first 6 values in first array 
+        else if (i <= 11) dataTodayRefined.value[date][1].push(value) // next 6 values in second array
+        else if (i <= 17) dataTodayRefined.value[date][2].push(value)
+        else dataTodayRefined.value[date][3].push(value)
+    }
+}
+
+function getWeatherPriorityObject(){
+    return {
+        'thunderstorm' : 10,
+        'rain' : 9,
+        'snow' : 8,
+        'fog' : 7,
+        'partly-cloudy-day': 6,
+        'partly-cloudy-night': 6,
+        'cloudy': 5,
+        'clear-day': 4,
+        'clear-night': 4,
+        'wind': 3,
+        'hail': 2,
+        'defaultWeather': 1
+    }
+
 }
 
 onMounted(async() => {
@@ -113,6 +120,7 @@ onMounted(async() => {
         resolvedAddress.value = weatherData.resolvedAddress
         refineData(dataWeeklyRaw.value.days)
     }
+    
 })
 </script>
 
