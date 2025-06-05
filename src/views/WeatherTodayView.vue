@@ -30,7 +30,7 @@ watch(() => route.params.address, (newAddress) => {
 
 async function fetchWeatherToday(location) {   
     try{
-        const response = await axios.get(`http://127.0.0.1:5000/weather/hourly/${location}/1`)
+        const response = await axios.get(`http://127.0.0.1:5000/weather/hourly/${location}/0`) // '0' to get 1 day - today
         return response.data
     }
     catch(error){
@@ -77,9 +77,9 @@ function setDataGeneral(data){
     
         dataGeneral.value = {
             "description" : data.conditions,
-            ...(data.preciptype?.length && {precipitationType : data.preciptype.join(', ')}),
-            "uvindex" : `${data.uvindex} (${getUvDescription(data.uvindex)})`,
-            ...(highUvHours.value?.length && {highUvHours : highUvHoursMessage.value}),
+            ...(data.preciptype?.length && {precipitationType : data.preciptype.join(', ')}), // ?. (not .?)
+            "uvindex" : `${data.uvindex} (${getUvDescription(data.uvindex)})`,                // Empty array is a value, it is true and spread works
+            ...(highUvHours.value?.length && {highUvHours : highUvHoursMessage.value}),       // So length is required
             "sunRise" : sunRise,
             "sunSet" : sunSet,
             "dayLength" : dayLength.value,
@@ -93,13 +93,13 @@ function calculateDayLength(){
     const sunrise = data.value.sunrise
     const sunset = data.value.sunset
 
-    const [a,b] = sunrise.split(':').map(Number)
-    const [d,e] = sunset.split(':').map(Number)
+    const [sunriseHours,sunriseMinutes] = sunrise.split(':').map(Number)
+    const [sunsetHours,sunsetMinutes] = sunset.split(':').map(Number)
 
-    const sunriseSeconds = a*3600 + b*60
-    let sunsetSeconds = d*3600 + e*60
+    const sunriseSeconds = sunriseHours*3600 + sunriseMinutes*60
+    let sunsetSeconds = sunsetHours*3600 + sunsetMinutes*60
 
-    if (d < a){
+    if (sunsetHours < sunriseHours){
         sunsetSeconds += 86400
         // Sunset after midnight
     }
@@ -125,8 +125,6 @@ onMounted(async() => {
         dataHourly.value = fetchedWeatherData.days[0].hours || []
         // Why || []?
         dataHourly.value.forEach(roundUp)
-        console.log(data.value)
-        console.log(dataHourly.value)
 
         setUvIndexHourly(dataHourly)
         showHighUvHours(uvIndexHourly.value)
@@ -148,7 +146,7 @@ onMounted(async() => {
 
     <hr>
     <br><br><br>
-    <WeatherHourly v-if="dataHourly" :data="data"></WeatherHourly>
+    <WeatherHourly v-if="dataHourly" :dataHourly="dataHourly"></WeatherHourly>
     <br><br><br>
     <WeatherTodayGeneral v-if="dataGeneral" 
                          :dataGeneral="dataGeneral">
