@@ -23,7 +23,7 @@ const props = defineProps({
 }
 .address-label{
     margin-left: 30px;
-    font-size: 2em;
+    font-size: 2.5em;
     padding: 5px;
     color: hsl(0, 0%, 15%);
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);

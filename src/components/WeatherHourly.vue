@@ -1,29 +1,21 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue';
 import { weatherIcons } from '@/assets/icons/icons';
-
-const scrollContainer = ref(null)
-const dataHourly = ref([])
+import {weatherMatchersForIcons, weatherMathcersForDisplay} from '@/utils/weatherMatchersForIcons';
 const props = defineProps({
     dataHourly : {
         type: Object,
         required: true
     }
 })
+const scrollContainer = ref(null)
+const dataHourly = ref([])
+const matchersForIcons = weatherMatchersForIcons()
+const matchersForDisplay = weatherMathcersForDisplay()
 
-const weatherMatchers = {
-    'partly-cloudy-day': 'partlyCloudyDay',
-    'partly-cloudy-night': 'partlyCloudyNight',
-    'cloudy': 'cloudy',
-    'rain': 'rain',
-    'clear-night': 'clearNight',
-    'clear-day': 'clearDay',
-    'snow': 'snow',
-    'fog': 'fog'
-}
 
 function getWeatherIcon(weatherDescription) {
-    const iconKey = weatherMatchers[weatherDescription]
+    const iconKey = matchersForIcons[weatherDescription]
     return weatherIcons[iconKey]? weatherIcons[iconKey] : weatherIcons.defaultWeather;
 }
 
@@ -37,7 +29,7 @@ function handleWheel(e) {  // e is event, passed automatically when user uses mo
 
 function getCurrentTimeString() {
     const now = new Date()
-    return `${now.getHours().toString().padStart(2,"0")}:00:00` // Pads with a leading zero if needed (e.g., "9" → "09") using .padStart(2, "0")
+    return `${now.getHours().toString().padStart(2,"0")}:00:00` // Pads with a leading zero if needed (e.g., "9" → "09")
 }
 
 function scrollToCurrentTime(){
@@ -88,7 +80,7 @@ onMounted(async () => {
                 {{ item.datetime === getCurrentTimeString() ? 'Now' : item.datetime }}
             </div>
             <div>
-                <img :src="getWeatherIcon(item.icon)" :alt="item.icon" class="weatherIcon" :title="item.icon">
+                <img :src="getWeatherIcon(item.icon)" :alt="item.icon" class="weatherIcon" :title="matchersForDisplay[item.icon]">
             </div>
             <div class="temperature">
                 {{ item.temp }}℃
