@@ -4,6 +4,7 @@ import WeatherTodayGeneral from '@/components/WeatherTodayGeneral.vue';
 import axios from 'axios';
 import { onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import calculateDayLength from '@/utils/calculateDayLength';
 
 const data = ref(null)
 const dataHourly = ref(null)
@@ -30,7 +31,7 @@ watch(() => route.params.address, (newAddress) => {
 
 async function fetchWeatherToday(location) {   
     try{
-        const response = await axios.get(`http://127.0.0.1:5000/weather/hourly/${location}/0`) // '0' to get 1 day - today
+        const response = await axios.get(`http://127.0.0.1:5000/weather/hourly/${location}/1`) // '0' to get 1 day - today
         return response.data
     }
     catch(error){
@@ -88,30 +89,6 @@ function setDataGeneral(data){
         }
     }
 
-
-function calculateDayLength(){
-    const sunrise = data.value.sunrise
-    const sunset = data.value.sunset
-
-    const [sunriseHours,sunriseMinutes] = sunrise.split(':').map(Number)
-    const [sunsetHours,sunsetMinutes] = sunset.split(':').map(Number)
-
-    const sunriseSeconds = sunriseHours*3600 + sunriseMinutes*60
-    let sunsetSeconds = sunsetHours*3600 + sunsetMinutes*60
-
-    if (sunsetHours < sunriseHours){
-        sunsetSeconds += 86400
-        // Sunset after midnight
-    }
-
-    const differenceSeconds = sunsetSeconds - sunriseSeconds
-
-    const hours = Math.floor(differenceSeconds / 3600)
-    const minutes = Math.floor((differenceSeconds % 3600) / 60)
-
-    dayLength.value = `${hours}h:${minutes}m`
-}
-
 function roundUp(element,index,array){
     array[index].temp = +Math.round(array[index].temp)
     array[index].feelslike = +Math.round(array[index].feelslike)
@@ -123,12 +100,11 @@ onMounted(async() => {
         resolvedAddress.value = fetchedWeatherData.resolvedAddress
         data.value = fetchedWeatherData.days[0]
         dataHourly.value = fetchedWeatherData.days[0].hours || []
-        // Why || []?
         dataHourly.value.forEach(roundUp)
 
         setUvIndexHourly(dataHourly)
         showHighUvHours(uvIndexHourly.value)
-        calculateDayLength()
+        dayLength.value = calculateDayLength(data.value)
         setDataGeneral(data.value)
     }
     catch(error){

@@ -7,9 +7,10 @@ import AddressWeek from '@/components/AddressWeek.vue';
 
 const addressUrl = ref(null)
 const route = useRoute()
-const dataWeeklyRaw = ref(null)
-const dataTodayRefined =  ref({})
 const resolvedAddress = ref(null)
+const dataWeeklyRaw = ref(null)
+const dataWeeklyRefined =  ref({})
+const sunInfo = ref({})
 const props = defineProps({
     address : {
         type: String,
@@ -32,40 +33,38 @@ async function fetchWeatherData(location){
 }
 
 function refineData(data){
-    const date = data[0].datetime
-    const hours = data[0].hours
-
-    dataTodayRefined.value = {
-        [date]: [ // [date] is used because plain date would be a 'date' string, not 2025-06-05, for example.
+    for(let i = 0; i < data.length; i++){
+        const date = data[i].datetime
+        const hours = data[i].hours
+        dataWeeklyRefined.value[date] = [  // [date] is used because plain date would be a 'date' string, not 2025-06-05, for example.
             ['night'],
             ['morning'],
             ['afternoon'],
             ['evening']
         ]
-    }
 
-    // console.log doesn't create a snapshot of the object. Instead it logs a reference and what you see in the console is the CURRENT state of the object.
-    // console.log(JSON.parse(JSON.stringify(dataTodayRefined.value[date])))
-    // Combined these 2 functions create a copy of dataTodayRefined. Now it's completely new object with no reference to the original.
-    // No manipulations are done to it after, unlike dataTodayRefined, and it retains the original value; so it's a snapshot.
-    
-    if(dataTodayRefined.value[date]){
-        const itemsToPush = ['temp', 'feelslike', 'windspeed', 'icon']
-        let dataStartIndex = 1
-        for(let itemToPush of itemsToPush){
-            fillData(hours, itemToPush, date) 
-            //console.table shows clearer logs and a snapshot. Works best with arrays and plain objects.
-            // console.table(dataTodayRefined.value[date]) 
-            dataTodayRefined.value[date].forEach(element => getAverage(element, dataStartIndex))
-            dataStartIndex++
+        // console.log doesn't create a snapshot of the object. Instead it logs a reference and what you see in the console is the CURRENT state of the object.
+        // console.log(JSON.parse(JSON.stringify(dataTodayRefined.value[date])))
+        // Combined these 2 functions create a copy of dataTodayRefined. Now it's completely new object with no reference to the original.
+        // No manipulations are done to it after, unlike dataTodayRefined, and it retains the original value; so it's a snapshot.
+        
+        if(dataWeeklyRefined.value[date]){
+            const itemsToPush = ['temp', 'icon', 'feelslike', 'windspeed', ]
+            let dataStartIndex = 1
+            for(let itemToPush of itemsToPush){
+                fillData(hours, itemToPush, date) 
+                //console.table shows clearer logs and a snapshot. Works best with arrays and plain objects.
+                // console.table(dataTodayRefined.value[date]) 
+                dataWeeklyRefined.value[date].forEach(element => getAverage(element, dataStartIndex))
+                dataStartIndex++
+            }
         }
     }
-    console.log(dataTodayRefined.value[date])
 }
 
 function getAverage(element, valuesStartIndex){ 
     const values = element.slice(valuesStartIndex) // extract portion of an array starting at valuesStartIndex
-    if (values.length === 0) return                // it shifts to the right every iteration to not delete average
+    if (values.length === 0) return                // it shifts to the right every iteration to not delete averages
     
     let average
     
@@ -87,10 +86,10 @@ function getAverage(element, valuesStartIndex){
 function fillData(data, item, date){
     for(let i = 0; i < data.length; i++){ // i is hour index(0-23)
         const value = data[i][item]
-        if (i <= 5) dataTodayRefined.value[date][0].push(value) // first 6 values in first array 
-        else if (i <= 11) dataTodayRefined.value[date][1].push(value) // next 6 values in second array
-        else if (i <= 17) dataTodayRefined.value[date][2].push(value)
-        else dataTodayRefined.value[date][3].push(value)
+        if (i <= 5) dataWeeklyRefined.value[date][0].push(value) // first 6 values in first array 
+        else if (i <= 11) dataWeeklyRefined.value[date][1].push(value) // next 6 values in second array
+        else if (i <= 17) dataWeeklyRefined.value[date][2].push(value)
+        else dataWeeklyRefined.value[date][3].push(value)
     }
 }
 
@@ -109,7 +108,6 @@ function getWeatherPriorityObject(){
         'hail': 2,
         'defaultWeather': 1
     }
-
 }
 
 onMounted(async() => {
@@ -120,7 +118,6 @@ onMounted(async() => {
         resolvedAddress.value = weatherData.resolvedAddress
         refineData(dataWeeklyRaw.value.days)
     }
-    
 })
 </script>
 
@@ -129,7 +126,8 @@ onMounted(async() => {
 :address="resolvedAddress"
 ></AddressWeek>
 
-<WeatherForDay v-if="dataWeeklyRaw"
-:data="dataWeeklyRaw"
+<WeatherForDay v-if="dataWeeklyRefined"
+:weather-info="dataWeeklyRefined"
+:sun-info="sunInfo"
 ></WeatherForDay>
 </template>
