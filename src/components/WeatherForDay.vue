@@ -76,10 +76,20 @@ onMounted(async() => {
 <template>
 <div class="weather-info-container" v-for="(dataForWeek, day) in weatherWeekly" :key="day">
     <div class="weather-info-averages">
-        <div class="date">
-            <h2 :class="{'week-day': !isWeekend(day), weekend: isWeekend(day), today: isToday(day)}">
-                {{ numberDateToWordDate(day)}} 
-            </h2>
+        <div class="labels-container">
+            <div class="date-container">
+                <h2 :class="{'week-day': !isWeekend(day), weekend: isWeekend(day), today: isToday(day)}">
+                    {{ numberDateToWordDate(day)}} 
+                </h2>
+            </div>
+            <div class="labels">
+                <h2>
+                    Feels like
+                </h2>
+                <h2>
+                    Wind speed
+                </h2>
+            </div>
         </div>
         <div class="weather-info" v-for="(dataForDay) in dataForWeek">
             <WeatherForDayAverage :data-for-day-average="dataForDay"></WeatherForDayAverage>
@@ -108,33 +118,48 @@ onMounted(async() => {
 .weather-info-container{
     display: flex;
     flex-wrap: wrap;
-    gap: 5em;
-    /* align-items: center; */
-    width: 100%;
-}
-.weather-info-averages{
-    width: 70%;
-    height: 300px;
-    background-color: azure;
+    gap: 1em;
+    background-color: #f5f5f5;
+    border-radius: 1em;
     margin-bottom: 20px;
 }
-.date{
+.weather-info-averages{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    min-height: 500px;
+    border-radius: 1em;
+}
+.labels-container{
     padding: 1em;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 18em;
+}
+.date-container{
+    min-width: 400px;
 }
 .week-day{
     font-size: 2em;
 }
+.labels{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6em;
+}
 .today{
-    color: green;
     font-size: 2em;
+    color: green;
 }
 .weekend{
-    color: red;
     font-size: 2em;
+    color: red;
 }
 .weather-info{
     display: flex; 
-    gap: 20px;
+    flex-wrap: wrap;
+    gap: 5em;
     padding: 5px;
     margin-left: 1em;
 }
