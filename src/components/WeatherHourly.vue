@@ -20,8 +20,8 @@ function getWeatherIcon(weatherDescription) {
 }
 
 function handleWheel(e) {  // e is event, passed automatically when user uses mouse wheel.
-    if (scrollContainer.value.scrollWidth > scrollContainer.value.clientWidth) { // Only scroll horizontally if there's horizontal content
-        e.preventDefault() // Prevent vertical scrolling
+    if (scrollContainer.value.scrollWidth > scrollContainer.value.clientWidth) { // if (total width of the content, incl. the part not currently visible is greater
+        e.preventDefault() // Prevent vertical scrolling                            than width of the container that is currently visible(viewport inside the element))
         scrollContainer.value.scrollLeft += e.deltaY // Scroll horizontally instead
     }
 }
@@ -32,6 +32,9 @@ function getCurrentTimeString() {
     return `${now.getHours().toString().padStart(2,"0")}:00:00` // Pads with a leading zero if needed (e.g., "9" → "09")
 }
 
+function timeWithoutSeconds(time){
+    return time.slice(0, time.length - 3)
+}
 function scrollToCurrentTime(){
     if(!scrollContainer.value || !dataHourly.value) return
 
@@ -76,17 +79,27 @@ onMounted(async () => {
     <div class="feels-like-line"></div>
     <div class="horizontal-scroll-container" ref="scrollContainer" @wheel.prevent="handleWheel">
         <div v-for="(item, index) in dataHourly" :key="index" class="scroll-item">
-            <div :class="{ 'current-time': item.datetime === getCurrentTimeString() }">
-                {{ item.datetime === getCurrentTimeString() ? 'Now' : item.datetime }}
+            <div :class="{ 'current-time': item.datetime === getCurrentTimeString(), 'hour-label' : item.datetime !== getCurrentTimeString() }">
+                {{ item.datetime === getCurrentTimeString() ? 'Now' : timeWithoutSeconds(item.datetime) }}
             </div>
             <div>
                 <img :src="getWeatherIcon(item.icon)" :alt="item.icon" class="weatherIcon" :title="matchersForDisplay[item.icon]">
             </div>
-            <div class="temperature">
-                {{ item.temp }}℃
+            <div :class="{temperature : item.temp > 0 || item.temp < 0, 'temperature-shift-right' : item.temp === 0}"> <!--shift to right if it's 0 -->
+                <div>                                                                                      <!-- which doesn't have + or -. Alignment -->     
+                    <p v-if="item.temp > 0">+</p>
+                </div>
+                <div>
+                    {{ item.temp }}℃
+                </div>
             </div>
-            <div class="feels-like-temperature">
-                {{ item.feelslike }}℃
+            <div :class="{'feels-like-temperature' : item.feelslike > 0 || item.feelslike < 0, 'feels-like-temperature-shift-right' : item.feelslike === 0 }">
+                <div>
+                    <p v-if="item.feelslike > 0">+</p>
+                </div>
+                <div>
+                    {{ item.feelslike }}℃
+                </div>
             </div>
         </div>
     </div>
@@ -98,7 +111,7 @@ onMounted(async () => {
 <style scoped>
 
 .hourly-info-label-container{
-    background-color: rgb(171, 254, 184);
+    background-color: rgb(129, 254, 148);
     height: 3.5em;
     position: relative;
     border-top-right-radius: 15px;
@@ -150,6 +163,7 @@ onMounted(async () => {
 .scroll-item {
     display: flex;
     flex-direction: column;
+    align-items: center;
     flex: 0 0 auto;  /*Prevents items from shrinking/growing */
     padding: 20px;
     width: 70px;
@@ -163,20 +177,38 @@ onMounted(async () => {
 .current-time {
     font-weight: bold;
     color: #42b983;
+    font-size: 1.5em;
 }
-
+.hour-label{
+    font-size: 1.5em;
+}
 .weatherIcon{
-    width: 25px;
-    height: 30px;
+    width: 50px;
+    height: 50px;
     margin-top: 1em;
 }
 
 .temperature{
+    font-size: 1.5em;
     margin-top: 1em;
+    display: flex;
+}
+.temperature-shift-right{
+    margin-top: 1em;
+    display: flex;
 }
 
 .feels-like-temperature{
+    font-size: 1.5em;
     margin-top: 1.5em;
     color: rgb(121, 120, 120);
+    display: flex;
+}
+.feels-like-temperature-shift-right{
+    font-size: 1.5em;
+    margin-top: 1.5em;
+    margin-left: 0.5em;
+    color: rgb(121, 120, 120);
+    display: flex;
 }
 </style>

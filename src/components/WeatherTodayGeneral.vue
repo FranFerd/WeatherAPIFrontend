@@ -38,7 +38,7 @@ const labelMap = {
 <style scoped>
 
 .general-info-label-container{
-    background-color: rgb(171, 254, 184);
+    background-color: rgb(129, 254, 148);
     height: 3.5em;
     position: relative;
     border-top-right-radius: 15px;
@@ -73,7 +73,7 @@ const labelMap = {
     flex-direction: column;
     flex: 0 0 auto;
     padding: 10px 20px;
-    width: 130px;
+    min-width: 130px;
     border-radius: 4px;
     user-select: none;
     text-align: center;
@@ -81,11 +81,12 @@ const labelMap = {
 
 .item-value{
     margin-top: 5px;
-    font-size: 1em;
+    font-size: 1.5em;
     padding: 5px;
     font-weight: bold;
 }
 .item-label{
+    font-size: 1.5em;
     margin-bottom: 5px;
     color: rgb(121, 120, 120);
 }
