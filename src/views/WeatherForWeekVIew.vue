@@ -1,9 +1,10 @@
 <script setup>
 import WeatherForDay from '@/components/WeatherForDay.vue';
+import AddressWeek from '@/components/AddressWeek.vue';
+import calculateDayLength from '@/utils/calculateDayLength';
 import axios from 'axios';
 import { onMounted, watch, ref} from 'vue';
 import { useRoute } from 'vue-router';
-import AddressWeek from '@/components/AddressWeek.vue';
 
 const addressUrl = ref(null)
 const route = useRoute()
@@ -42,6 +43,10 @@ function refineData(data){
             ['afternoon'],
             ['evening']
         ]
+
+        const sunrise = data[i].sunrise
+        const sunset = data[i].sunset
+        sunInfo.value[date] = [sunrise, calculateDayLength(data[i]), sunset]
 
         // console.log doesn't create a snapshot of the object. Instead it logs a reference and what you see in the console is the CURRENT state of the object.
         // console.log(JSON.parse(JSON.stringify(dataTodayRefined.value[date])))
@@ -126,8 +131,8 @@ onMounted(async() => {
 :address="resolvedAddress"
 ></AddressWeek>
 
-<WeatherForDay v-if="dataWeeklyRefined"
+<WeatherForDay v-if="dataWeeklyRefined" 
 :weather-info="dataWeeklyRefined"
 :sun-info="sunInfo"
-></WeatherForDay>
+></WeatherForDay> <!-- Vue automatically handles props; no need to pass .value in props -->
 </template>
