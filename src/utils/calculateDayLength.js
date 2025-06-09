@@ -18,5 +18,5 @@ export default function calculateDayLength(data){
     const hours = Math.floor(differenceSeconds / 3600)
     const minutes = Math.floor((differenceSeconds % 3600) / 60)
 
-    return `${hours}h:${minutes}m`
+    return `${hours}h ${minutes}m`
 }

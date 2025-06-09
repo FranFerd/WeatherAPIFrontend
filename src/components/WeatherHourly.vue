@@ -134,17 +134,16 @@ onMounted(async () => {
 
 .feels-like-label{
     position: absolute;
-    top: 61%;
+    top: 67%;
     width: 100px;
     text-align: right;
-    padding-right: 10px;
     color: rgb(121, 120, 120);
 }
 
 .feels-like-line{
     position: absolute;
     left: 0;
-    top: 68%;
+    top: 73%;
     right: 0;
     height: 1px;
     background-color: rgb(121, 120, 120);
@@ -194,7 +193,9 @@ onMounted(async () => {
     display: flex;
 }
 .temperature-shift-right{
+    font-size: 1.5em;
     margin-top: 1em;
+    margin-left: 0.5em;
     display: flex;
 }
 
