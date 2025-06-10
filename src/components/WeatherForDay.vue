@@ -117,20 +117,26 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateWidth))
             </WeatherForDayAverage>
         </div>
     </div>
-    <div class="sun-info" v-if="!isHideSunInfo">
-        <div class="sun-container">
-            <svg viewBox="0 0 200 50" width="400" height="100">
-                <!-- Arc -->
-                <path d="M0,80 A80,80 0 0,1 160,80" fill="none" stroke="#fbc02d" stroke-width="2" />
-                
-                <!-- Sun Icon (positioned at midpoint here — noon) -->
-                <circle cx="0" cy="50" r="10" fill="#fdd835" />
-            </svg>
+    <div class="sun-info-container" v-if="!isHideSunInfo">
+        <div class="sun-info-main">
+            <div class="sun-arc">
+                <svg viewBox="0 0 200 50" width="400" height="100">
+                    <!-- Arc -->
+                    <path d="M0,80 A80,80 0 0,1 160,80" fill="none" stroke="#fbc02d" stroke-width="2" />
+                    
+                    <!-- Sun Icon (positioned at midpoint here — noon) -->
+                    <circle cx="0" cy="50" r="10" fill="#fdd835" />
+                </svg>
+            </div>
+            <div class="sun-time-container" v-if="sunInfo[day]"> <!-- day is the key from for loop -->
+                <SunInfoForDay 
+                :sun-info-for-day-main="sunInfo[day]"
+                :sun-info-for-day-additional="''">
+                </SunInfoForDay>
+            </div>
         </div>
-        <div class="sun-time-container" v-for="(sunData, index) in sunInfo" :key="index"> 
-            <SunInfoForDay 
-            :sun-info-for-week="sunData">
-            </SunInfoForDay>
+        <div class="sun-info-additional">
+
         </div>
     </div>
 </div>
@@ -141,7 +147,8 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateWidth))
 <style scoped>
 .weather-info-container{
     display: flex;
-    gap: 4em;
+    /* justify-content: space-between; */
+    gap: 8em;
     background-color: #f5f5f5;
     border-radius: 1em;
     margin-bottom: 20px;
@@ -152,9 +159,10 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateWidth))
     justify-content: space-evenly;
     min-height: 500px;
     min-width: 300px;
-    /* max-width: 1000px; */
+    max-width: 1000px;
     width: 100%;
     border-radius: 1em;
+    border: black 1px solid;
 }
 .labels-container{
     width: 97%;
@@ -169,7 +177,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateWidth))
 .labels{
     display: flex;
     justify-content: space-between;
-    gap: 3em;
+    gap: 3.5em;
 }
 .today{
     font-size: 2em;
@@ -184,9 +192,25 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateWidth))
     justify-content: space-between;
     align-items: center;
 }
-.sun-info{
+.sun-info-container{
     display: flex;
     flex-direction: column;
-    margin-top: 5em;
+    gap: 5px;
+    padding-top: 8em;
+    margin-right: 5em;
+    /* border: black 1px solid; */
+    text-align: center;
+
+}
+.sun-info-main{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.sun-time-container{
+    display: flex;
+    gap: 4em;
+    margin-right: 5em;
+    /* border: black 1px solid; */
 }
 </style>

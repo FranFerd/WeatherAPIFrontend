@@ -53,10 +53,8 @@ function addIcon(description){
 .weather-info-item{
     display: flex;
     align-items: center;
-    /* width: 4em; */
     margin-left: 1em;
     margin-right: 1em;
-    /* border: rgb(152, 152, 152) 2px solid; */
 }
 .item-container{
     display: flex;
@@ -66,14 +64,11 @@ function addIcon(description){
 .item-word{
     font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     font-size: 1.5em;
-    /* border: black 1px solid; */
     width: 4em;
-    /* text-align: center; */
 }
 .item-digit{
     font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     font-size: 1.5em;
-    /* border: black 1px solid; */
     width: 1em;
     text-align: center;
 }

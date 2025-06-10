@@ -5,6 +5,7 @@ import axios from 'axios';
 import { onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import calculateDayLength from '@/utils/calculateDayLength';
+import { getUvDescription, setUvIndexHourly, showHighUvHours } from '@/utils/uvIndex';
 
 const data = ref(null)
 const dataHourly = ref(null)
@@ -37,34 +38,6 @@ async function fetchWeatherToday(location) {
     catch(error){
         console.error(error)
     }
-}
-
-function getUvDescription(uvIndex){
-    if (uvIndex <= 2) return 'Low'
-    if (uvIndex <=5) return 'Moderate' 
-    if (uvIndex <=7) return 'High'
-    if (uvIndex <=10) return 'Very High'
-    return 'Extreme'
-}
-
-function setUvIndexHourly(data){
-    for(let i = 0; i < data.value.length; i++){
-        uvIndexHourly.value.push({
-            "time": data.value[i].datetime,
-            "uvindex": data.value[i].uvindex,
-            "description": getUvDescription(data.value[i].uvindex)
-        })
-    }
-}
-
-function showHighUvHours(uvDataHourly){
-    for (let hour of uvDataHourly){
-        if (hour.uvindex >= 6){
-            highUvHours.value.push(hour.time)
-        }
-    }
-    highUvHoursMessage.value = `From ${highUvHours.value[0]} to ${highUvHours.value[highUvHours.value.length - 1]}`
-    
 }
 
 function setDataGeneral(data){
@@ -102,10 +75,15 @@ onMounted(async() => {
         dataHourly.value = fetchedWeatherData.days[0].hours || []
         dataHourly.value.forEach(roundUp)
 
-        setUvIndexHourly(dataHourly)
-        showHighUvHours(uvIndexHourly.value)
+        setUvIndexHourly(dataHourly, uvIndexHourly)
+        showHighUvHours(uvIndexHourly.value, highUvHours, highUvHoursMessage)
         dayLength.value = calculateDayLength(data.value)
         setDataGeneral(data.value)
+
+        console.log('dataHourly.value',dataHourly.value )
+        console.log('uvIndexHourly.value',uvIndexHourly.value)
+        console.log('highUvHours.value',highUvHours.value)
+        console.log('highUvHoursMessage', highUvHoursMessage.value)
     }
     catch(error){
         console.error('Error: ', error)
