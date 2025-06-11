@@ -5,6 +5,7 @@ import axios from 'axios';
 import { onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import calculateDayLength from '@/utils/calculateDayLength';
+import { getUvDescription, setUvIndexHourly, showHighUvHoursMessage } from '@/utils/uvIndex';
 
 const data = ref(null)
 const dataHourly = ref(null)
@@ -14,7 +15,6 @@ const resolvedAddress = ref(null)
 const message = ref(null)
 const route = useRoute()
 const uvIndexHourly = ref([])
-const highUvHours = ref([])
 const highUvHoursMessage = ref(null)
 const dayLength = ref(null)
 
@@ -39,34 +39,6 @@ async function fetchWeatherToday(location) {
     }
 }
 
-function getUvDescription(uvIndex){
-    if (uvIndex <= 2) return 'Low'
-    if (uvIndex <=5) return 'Moderate' 
-    if (uvIndex <=7) return 'High'
-    if (uvIndex <=10) return 'Very High'
-    return 'Extreme'
-}
-
-function setUvIndexHourly(data){
-    for(let i = 0; i < data.value.length; i++){
-        uvIndexHourly.value.push({
-            "time": data.value[i].datetime,
-            "uvindex": data.value[i].uvindex,
-            "description": getUvDescription(data.value[i].uvindex)
-        })
-    }
-}
-
-function showHighUvHours(uvDataHourly){
-    for (let hour of uvDataHourly){
-        if (hour.uvindex >= 6){
-            highUvHours.value.push(hour.time)
-        }
-    }
-    highUvHoursMessage.value = `From ${highUvHours.value[0]} to ${highUvHours.value[highUvHours.value.length - 1]}`
-    
-}
-
 function setDataGeneral(data){
     if(data){
         
@@ -80,7 +52,7 @@ function setDataGeneral(data){
             "description" : data.conditions,
             ...(data.preciptype?.length && {precipitationType : data.preciptype.join(', ')}), // ?. (not .?)
             "uvindex" : `${data.uvindex} (${getUvDescription(data.uvindex)})`,                // Empty array is a value, it is true and spread works
-            ...(highUvHours.value?.length && {highUvHours : highUvHoursMessage.value}),       // So length is required
+            ...(highUvHoursMessage.value?.length && {highUvHours : highUvHoursMessage.value}),       // So length is required
             "sunRise" : sunRise,
             "sunSet" : sunSet,
             "dayLength" : dayLength.value,
@@ -99,12 +71,15 @@ onMounted(async() => {
         const fetchedWeatherData = await fetchWeatherToday(addressUrl.value)
         resolvedAddress.value = fetchedWeatherData.resolvedAddress
         data.value = fetchedWeatherData.days[0]
+        
         dataHourly.value = fetchedWeatherData.days[0].hours || []
         dataHourly.value.forEach(roundUp)
 
-        setUvIndexHourly(dataHourly)
-        showHighUvHours(uvIndexHourly.value)
+        uvIndexHourly.value = setUvIndexHourly(dataHourly)
+        highUvHoursMessage.value = showHighUvHoursMessage(uvIndexHourly.value)
+
         dayLength.value = calculateDayLength(data.value)
+
         setDataGeneral(data.value)
     }
     catch(error){

@@ -1,7 +1,8 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import switchDayOfWeek from '@/utils/switchDayOfWeek'
 import switchMonth from '@/utils/switchMonth'
+import { sunPositions } from '@/utils/sunPositions'
 import WeatherForDayAverage from './WeatherForDayAverage.vue'
 import SunInfoForDay from './SunInfoForDay.vue'
 const props = defineProps({
@@ -15,22 +16,13 @@ const props = defineProps({
     }
 })
 const weatherWeekly = ref(props.weatherInfo)
+console.log(weatherWeekly.value)
 const sunInfo = ref(props.sunInfo)
+console.log(sunInfo.value)
 const screenWidth = ref(window.innerWidth)
 const isHideSunInfo = isWidthSmaller(1250)
 const isHideLabels = isWidthSmaller(900)
 
-console.log(weatherWeekly.value)
-console.log(sunInfo.value)
-
-watchEffect(() => {
-  if (weatherWeekly.value && Object.keys(weatherWeekly.value).length) {
-    for (const [day, dataForWeek] of Object.entries(weatherWeekly.value)) {
-      console.log('Day:', day)
-      console.log('Data for week:', dataForWeek)
-    }
-  }
-})
 
 function numberDateToWordDate(numberDate){ // 2025-06-07 YYYY-MM-DD
     const date = numberDate.slice(5)
@@ -83,7 +75,29 @@ function updateWidth(){
     screenWidth.value = window.innerWidth
 }
 
-onMounted(() => window.addEventListener('resize', updateWidth)) // adds listener to updateWidth every time it changes
+function getCurrentSunArcPosition(sunriseTime, sunsetTime){
+    const [sunriseHours, sunriseMinutes] = sunriseTime.split(':')
+    const [sunsetHours, sunsetMinutes] = sunsetTime.split(':')
+
+    const sunsetTimeInMinutes = Number(sunsetHours) * 60 + Number(sunsetMinutes)
+    const sunriseTimeInMinutes = Number(sunriseHours) * 60 + Number(sunriseMinutes)
+
+    const currentTime = new Date()
+    const currentTimeInMinutes = Number(currentTime.getHours()) * 60 + Number(currentTime.getMinutes())
+
+    const daylightDuration = sunsetTimeInMinutes - sunriseTimeInMinutes
+    const minutesSinceSunrise = currentTimeInMinutes - sunriseTimeInMinutes
+
+    let coefficient = Math.min(Math.max(minutesSinceSunrise / daylightDuration, 0), 1) // max ensures the value is at least 0    
+    coefficient =  Math.floor(coefficient * 10)                                                       // min ensures the value is not bigger than 1)
+
+    return sunPositions[coefficient] //sunPositions is exported. Contains [cx, cy] for sun. Positions 0 to 9
+}
+
+onMounted(() => {
+    window.addEventListener('resize', updateWidth)  // adds listener to update screenWidth every time viewport changes 
+
+})  
 
 onBeforeUnmount(() => window.removeEventListener('resize', updateWidth))
 </script>
@@ -117,20 +131,24 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateWidth))
             </WeatherForDayAverage>
         </div>
     </div>
-    <div class="sun-info" v-if="!isHideSunInfo">
-        <div class="sun-container">
-            <svg viewBox="0 0 200 50" width="400" height="100">
-                <!-- Arc -->
-                <path d="M0,80 A80,80 0 0,1 160,80" fill="none" stroke="#fbc02d" stroke-width="2" />
-                
-                <!-- Sun Icon (positioned at midpoint here — noon) -->
-                <circle cx="0" cy="50" r="10" fill="#fdd835" />
-            </svg>
-        </div>
-        <div class="sun-time-container" v-for="(sunData, index) in sunInfo" :key="index"> 
-            <SunInfoForDay 
-            :sun-info-for-week="sunData">
-            </SunInfoForDay>
+    <div class="sun-info-container" v-if="!isHideSunInfo && sunInfo[day]">
+        <div class="sun-info-main">
+            <div class="sun-arc-container">
+                <svg viewBox="0 0 200 30" width="400" height="100" class="sun-arc">
+                    <path d="M0,80 A80,80 0 0,1 160,80" fill="none" stroke="#fbc02d" stroke-width="1.5" /> <!-- Arc -->
+                    <circle
+                    :cx="getCurrentSunArcPosition(sunInfo[day][0], sunInfo[day][2])[0]" 
+                    :cy="getCurrentSunArcPosition(sunInfo[day][0], sunInfo[day][2])[1]" 
+                    r="9"
+                    fill="#fdd835"/> <!-- sunInfo[day][0] is sunriseTime [2] - sunset. [0] is cx, [1] - cy -->
+                </svg>
+            </div>
+            <div class="sun-time-container" v-if="sunInfo[day]"> <!-- day is the key from for loop -->
+                <SunInfoForDay
+                :sun-info-for-day-main="sunInfo[day]"
+                :sun-info-for-day-additional="{}">
+                </SunInfoForDay>
+            </div>
         </div>
     </div>
 </div>
@@ -141,7 +159,8 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateWidth))
 <style scoped>
 .weather-info-container{
     display: flex;
-    gap: 4em;
+    justify-content: space-between;
+    gap: 8em;
     background-color: #f5f5f5;
     border-radius: 1em;
     margin-bottom: 20px;
@@ -152,9 +171,10 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateWidth))
     justify-content: space-evenly;
     min-height: 500px;
     min-width: 300px;
-    /* max-width: 1000px; */
+    max-width: 1000px;
     width: 100%;
     border-radius: 1em;
+    /* border: black 1px solid; */
 }
 .labels-container{
     width: 97%;
@@ -169,7 +189,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateWidth))
 .labels{
     display: flex;
     justify-content: space-between;
-    gap: 3em;
+    gap: 3.5em;
 }
 .today{
     font-size: 2em;
@@ -184,9 +204,25 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateWidth))
     justify-content: space-between;
     align-items: center;
 }
-.sun-info{
+.sun-info-container{
     display: flex;
     flex-direction: column;
-    margin-top: 5em;
+    gap: 5px;
+    padding-top: 8em;
+    margin-right: 5em;
+    /* border: black 1px solid; */
+    text-align: center;
+
+}
+.sun-info-main{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.sun-time-container{
+    display: flex;
+    gap: 4em;
+    margin-right: 5em;
+    /* border: black 1px solid; */
 }
 </style>

@@ -2,6 +2,7 @@
 import WeatherForDay from '@/components/WeatherForDay.vue';
 import AddressWeek from '@/components/AddressWeek.vue';
 import calculateDayLength from '@/utils/calculateDayLength';
+import getWeatherPriorityObject from '@/utils/getWeatherPriorityObject'
 import axios from 'axios';
 import { onMounted, watch, ref} from 'vue';
 import { useRoute } from 'vue-router';
@@ -34,6 +35,7 @@ async function fetchWeatherData(location){
 }
 
 function refineData(data){
+    console.log(data)
     for(let i = 0; i < data.length; i++){
         const date = data[i].datetime
         const hours = data[i].hours
@@ -44,8 +46,8 @@ function refineData(data){
             ['evening']
         ]
 
-        const sunrise = data[i].sunrise
-        const sunset = data[i].sunset
+        const sunrise = data[i].sunrise.slice(0, 5) // Remove seconds
+        const sunset = data[i].sunset.slice(0, 5)
         sunInfo.value[date] = [sunrise, calculateDayLength(data[i]), sunset]
 
         // console.log doesn't create a snapshot of the object. Instead it logs a reference and what you see in the console is the CURRENT state of the object.
@@ -98,23 +100,6 @@ function fillData(data, item, date){
     }
 }
 
-function getWeatherPriorityObject(){
-    return {
-        'thunderstorm' : 10,
-        'rain' : 9,
-        'snow' : 8,
-        'fog' : 7,
-        'partly-cloudy-day': 6,
-        'partly-cloudy-night': 6,
-        'cloudy': 5,
-        'clear-day': 4,
-        'clear-night': 4,
-        'wind': 3,
-        'hail': 2,
-        'defaultWeather': 1
-    }
-}
-
 onMounted(async() => {
     // No need for try-catch, fetchWeatherData already has it. Refer to WeatherTodayView for comparison
     const weatherData = await fetchWeatherData(addressUrl.value)
@@ -133,6 +118,6 @@ onMounted(async() => {
 
 <WeatherForDay v-if="dataWeeklyRefined" 
 :weather-info="dataWeeklyRefined"
-:sun-info="sunInfo"
-></WeatherForDay> <!-- Vue automatically handles props; no need to pass .value in props -->
+:sun-info="sunInfo">
+</WeatherForDay> <!-- Vue automatically handles props; no need to pass .value in props -->
 </template>
