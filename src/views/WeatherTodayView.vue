@@ -5,7 +5,7 @@ import axios from 'axios';
 import { onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import calculateDayLength from '@/utils/calculateDayLength';
-import { getUvDescription, setUvIndexHourly, showHighUvHours } from '@/utils/uvIndex';
+import { getUvDescription, setUvIndexHourly, showHighUvHoursMessage } from '@/utils/uvIndex';
 
 const data = ref(null)
 const dataHourly = ref(null)
@@ -15,7 +15,6 @@ const resolvedAddress = ref(null)
 const message = ref(null)
 const route = useRoute()
 const uvIndexHourly = ref([])
-const highUvHours = ref([])
 const highUvHoursMessage = ref(null)
 const dayLength = ref(null)
 
@@ -53,7 +52,7 @@ function setDataGeneral(data){
             "description" : data.conditions,
             ...(data.preciptype?.length && {precipitationType : data.preciptype.join(', ')}), // ?. (not .?)
             "uvindex" : `${data.uvindex} (${getUvDescription(data.uvindex)})`,                // Empty array is a value, it is true and spread works
-            ...(highUvHours.value?.length && {highUvHours : highUvHoursMessage.value}),       // So length is required
+            ...(highUvHoursMessage.value?.length && {highUvHours : highUvHoursMessage.value}),       // So length is required
             "sunRise" : sunRise,
             "sunSet" : sunSet,
             "dayLength" : dayLength.value,
@@ -72,18 +71,16 @@ onMounted(async() => {
         const fetchedWeatherData = await fetchWeatherToday(addressUrl.value)
         resolvedAddress.value = fetchedWeatherData.resolvedAddress
         data.value = fetchedWeatherData.days[0]
+        
         dataHourly.value = fetchedWeatherData.days[0].hours || []
         dataHourly.value.forEach(roundUp)
 
-        setUvIndexHourly(dataHourly, uvIndexHourly)
-        showHighUvHours(uvIndexHourly.value, highUvHours, highUvHoursMessage)
-        dayLength.value = calculateDayLength(data.value)
-        setDataGeneral(data.value)
+        uvIndexHourly.value = setUvIndexHourly(dataHourly)
+        highUvHoursMessage.value = showHighUvHoursMessage(uvIndexHourly.value)
 
-        console.log('dataHourly.value',dataHourly.value )
-        console.log('uvIndexHourly.value',uvIndexHourly.value)
-        console.log('highUvHours.value',highUvHours.value)
-        console.log('highUvHoursMessage', highUvHoursMessage.value)
+        dayLength.value = calculateDayLength(data.value)
+
+        setDataGeneral(data.value)
     }
     catch(error){
         console.error('Error: ', error)

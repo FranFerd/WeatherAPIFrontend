@@ -6,21 +6,30 @@ export function getUvDescription(uvIndex){
     return 'Extreme'
 }
 
-export function setUvIndexHourly(data, uvIndexHourly){
+export function setUvIndexHourly(data){
+    const uvIndexHourly = []
     for(let i = 0; i < data.value.length; i++){
-        uvIndexHourly.value.push({
+        uvIndexHourly.push({
             "time": data.value[i].datetime,
             "uvindex": data.value[i].uvindex,
             "description": getUvDescription(data.value[i].uvindex)
         })
     }
+    return uvIndexHourly
 }
 
-export function showHighUvHours(uvDataHourly, highUvHours, highUvHoursMessage){
-    for (let hour of uvDataHourly){
-        if (hour.uvindex >= 6){
-            highUvHours.value.push(hour.time)
+export function showHighUvHoursMessage(uvIndexHourly){
+    const highUvHours = []
+    for (let hourData of uvIndexHourly){
+        if (hourData.uvindex >= 6){
+            highUvHours.push(hourData.time.slice(0,5)) // Remove seconds
         }
     }
-    highUvHoursMessage.value = `${highUvHours.value[0]} - ${highUvHours.value[highUvHours.value.length - 1]}`
+    if(highUvHours.length > 1){
+        return `${highUvHours[0]} - ${highUvHours[highUvHours.length - 1]}`
+    }
+    else if(highUvHours.length === 1){
+        return `${highUvHours[0]}`
+    }
+    return ''
 }

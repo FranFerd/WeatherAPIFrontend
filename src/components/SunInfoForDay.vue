@@ -5,7 +5,7 @@ const props = defineProps({
         required: true
     },
     sunInfoForDayAdditional: {
-        type: Array,
+        type: Object,
         required: true
     }
 })
