@@ -97,8 +97,8 @@ function getCurrentSunArcPosition(sunriseTime, sunsetTime){
     const daylightDuration = sunsetTimeInMinutes - sunriseTimeInMinutes
     const minutesSinceSunrise = currentTimeInMinutes - sunriseTimeInMinutes
 
-    let coefficient = Math.min(Math.max(minutesSinceSunrise / daylightDuration, 0), 1) // max ensures the value is at least 0  
-    coefficient =  Math.ceil(coefficient * 10)                                        // min ensures the value is not bigger than 1)
+    let coefficient = Math.min(Math.max(minutesSinceSunrise / daylightDuration, 0), 1) // max ensures the value is at least 0 
+    coefficient =  Math.round(coefficient * 10)                                        // min ensures the value is not bigger than 1)
 
     return sunPositions[coefficient] || [-10, -10] //sunPositions is exported. Contains [cx, cy] for sun. Positions 0 to 9
 }                                               // [-10, -10] for polar day/night. Removes the sun from the arc

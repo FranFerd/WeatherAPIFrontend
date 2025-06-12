@@ -41,25 +41,26 @@ function getUvColor(description){
 <style scoped>
 .sun-info-for-day-additional{
     display: flex;
+    align-items: center;
     gap: 4em;
 }
 .sun-info-for-day-key-container{
     width: 8em;
 }
 .sun-info-for-day-key{
-    text-align: center;
+    text-align: left;
     font-size: 1.5em;
     color: gray;
 }
 .sun-info-for-day-item-container{
-    width: 8em;
+    width: 11em;
 }
 .sun-info-for-day-item{
     font-size: 1.5em;
 }
 .uv{
     font-size: 1.5em;
-    text-align: center;
+    text-align: center
 }
 .uv-low {
   color: #2e7d32; 
