@@ -3,9 +3,17 @@ import WeatherForDay from '@/components/WeatherForDay.vue';
 import AddressWeek from '@/components/AddressWeek.vue';
 import calculateDayLength from '@/utils/calculateDayLength';
 import getWeatherPriorityObject from '@/utils/getWeatherPriorityObject'
+import { setUvIndexHourly, showHighUvHoursMessage, getUvDescription } from '@/utils/uvIndex';
 import axios from 'axios';
 import { onMounted, watch, ref} from 'vue';
 import { useRoute } from 'vue-router';
+
+const props = defineProps({
+    address : {
+        type: String,
+        required: true
+    }
+})
 
 const addressUrl = ref(null)
 const route = useRoute()
@@ -13,12 +21,10 @@ const resolvedAddress = ref(null)
 const dataWeeklyRaw = ref(null)
 const dataWeeklyRefined =  ref({})
 const sunInfo = ref({})
-const props = defineProps({
-    address : {
-        type: String,
-        required: true
-    }
-})
+const uvIndexHourly = ref({})
+const highUvHoursMessage = ref(null)
+const uvIndexForWeek = ref({})
+
 watch(() => route.params.address, (newAddress) => {
     addressUrl.value = newAddress
 }, {immediate:true} )
@@ -35,33 +41,28 @@ async function fetchWeatherData(location){
 }
 
 function refineData(data){
-    console.log(data)
-    for(let i = 0; i < data.length; i++){
-        const date = data[i].datetime
-        const hours = data[i].hours
-        dataWeeklyRefined.value[date] = [  // [date] is used because plain date would be a 'date' string, not 2025-06-05, for example.
+    for(let dayIndex = 0; dayIndex < data.length; dayIndex++){ // day index (0-6)
+        const date = data[dayIndex].datetime
+        const hourlyData = data[dayIndex].hours
+
+        dataWeeklyRefined.value[date] = [  // [date] is used because plain date would be a 'date' string, not '2025-06-05', for example.
             ['night'],
             ['morning'],
             ['afternoon'],
             ['evening']
         ]
 
-        const sunrise = data[i].sunrise.slice(0, 5) // Remove seconds
-        const sunset = data[i].sunset.slice(0, 5)
-        sunInfo.value[date] = [sunrise, calculateDayLength(data[i]), sunset]
+        const sunrise = data[dayIndex].sunrise.slice(0, 5) // Remove seconds
+        const sunset = data[dayIndex].sunset.slice(0, 5)
+        sunInfo.value[date] = [sunrise, calculateDayLength(data[dayIndex]), sunset]
 
-        // console.log doesn't create a snapshot of the object. Instead it logs a reference and what you see in the console is the CURRENT state of the object.
-        // console.log(JSON.parse(JSON.stringify(dataTodayRefined.value[date])))
-        // Combined these 2 functions create a copy of dataTodayRefined. Now it's completely new object with no reference to the original.
-        // No manipulations are done to it after, unlike dataTodayRefined, and it retains the original value; so it's a snapshot.
+        fillSunDataAdditional(hourlyData, date, data[dayIndex].uvindex)
         
         if(dataWeeklyRefined.value[date]){
             const itemsToPush = ['temp', 'icon', 'feelslike', 'windspeed', ]
             let dataStartIndex = 1
             for(let itemToPush of itemsToPush){
-                fillData(hours, itemToPush, date) 
-                //console.table shows clearer logs and a snapshot. Works best with arrays and plain objects.
-                // console.table(dataTodayRefined.value[date]) 
+                fillData(hourlyData, itemToPush, date) 
                 dataWeeklyRefined.value[date].forEach(element => getAverage(element, dataStartIndex))
                 dataStartIndex++
             }
@@ -90,12 +91,22 @@ function getAverage(element, valuesStartIndex){
     element.push(average)
 }
 
+function fillSunDataAdditional(data, date, uvindex){
+    uvIndexHourly.value[date] = setUvIndexHourly(data)
+    highUvHoursMessage.value = showHighUvHoursMessage(uvIndexHourly.value[date])
+    
+    uvIndexForWeek.value[date] = {
+        'uvindex': `${uvindex}, ${getUvDescription(uvindex)}`,
+        'highUvHours' : highUvHoursMessage.value ? highUvHoursMessage.value : 'No high UV hours'
+    }
+}
+
 function fillData(data, item, date){
-    for(let i = 0; i < data.length; i++){ // i is hour index(0-23)
-        const value = data[i][item]
-        if (i <= 5) dataWeeklyRefined.value[date][0].push(value) // first 6 values in first array 
-        else if (i <= 11) dataWeeklyRefined.value[date][1].push(value) // next 6 values in second array
-        else if (i <= 17) dataWeeklyRefined.value[date][2].push(value)
+    for(let hourIndex = 0; hourIndex < data.length; hourIndex++){ // hour index(0-23)
+        const value = data[hourIndex][item]
+        if (hourIndex <= 5) dataWeeklyRefined.value[date][0].push(value) // first 6 values in first array 
+        else if (hourIndex <= 11) dataWeeklyRefined.value[date][1].push(value) // next 6 values in second array
+        else if (hourIndex <= 17) dataWeeklyRefined.value[date][2].push(value)
         else dataWeeklyRefined.value[date][3].push(value)
     }
 }
@@ -118,6 +129,7 @@ onMounted(async() => {
 
 <WeatherForDay v-if="dataWeeklyRefined" 
 :weather-info="dataWeeklyRefined"
-:sun-info="sunInfo">
+:sun-info="sunInfo"
+:uvindex-info="uvIndexForWeek">
 </WeatherForDay> <!-- Vue automatically handles props; no need to pass .value in props -->
 </template>

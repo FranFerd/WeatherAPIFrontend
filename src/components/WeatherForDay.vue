@@ -4,7 +4,9 @@ import switchDayOfWeek from '@/utils/switchDayOfWeek'
 import switchMonth from '@/utils/switchMonth'
 import { sunPositions } from '@/utils/sunPositions'
 import WeatherForDayAverage from './WeatherForDayAverage.vue'
-import SunInfoForDay from './SunInfoForDay.vue'
+import SunInfoForDayMain from './SunInfoForDayMain.vue'
+import SunInfoForDayAdditional from './SunInfoForDayAdditional.vue'
+
 const props = defineProps({
     weatherInfo: {
         type: Object,
@@ -13,16 +15,19 @@ const props = defineProps({
     sunInfo: {
         type: Object,
         required: true
+    },
+    uvindexInfo: {
+        type: Object,
+        required: true
     }
 })
+
 const weatherWeekly = ref(props.weatherInfo)
-console.log(weatherWeekly.value)
 const sunInfo = ref(props.sunInfo)
-console.log(sunInfo.value)
+const uvindexInfo = ref(props.uvindexInfo)
 const screenWidth = ref(window.innerWidth)
 const isHideSunInfo = isWidthSmaller(1250)
 const isHideLabels = isWidthSmaller(900)
-
 
 function numberDateToWordDate(numberDate){ // 2025-06-07 YYYY-MM-DD
     const date = numberDate.slice(5)
@@ -68,8 +73,8 @@ function isWeekend(numberDate){
     return dayOfWeek === 0 || dayOfWeek === 6 // 0-indexed. Start with Sunday
 }
 
-function isWidthSmaller(width){
-    return computed(() => screenWidth.value <= width)
+function isWidthSmaller(width){ // return true if passed with is smaller that screenWidth
+    return computed(() => screenWidth.value <= width) // computed is to make it reactive
 }
 function updateWidth(){
     screenWidth.value = window.innerWidth
@@ -79,8 +84,12 @@ function getCurrentSunArcPosition(sunriseTime, sunsetTime){
     const [sunriseHours, sunriseMinutes] = sunriseTime.split(':')
     const [sunsetHours, sunsetMinutes] = sunsetTime.split(':')
 
-    const sunsetTimeInMinutes = Number(sunsetHours) * 60 + Number(sunsetMinutes)
     const sunriseTimeInMinutes = Number(sunriseHours) * 60 + Number(sunriseMinutes)
+    let sunsetTimeInMinutes = Number(sunsetHours) * 60 + Number(sunsetMinutes)
+
+    if(sunsetTimeInMinutes < sunriseTimeInMinutes) { // add a whole day in minutes if sunset is after midnight
+        sunsetTimeInMinutes += 1440
+    }
 
     const currentTime = new Date()
     const currentTimeInMinutes = Number(currentTime.getHours()) * 60 + Number(currentTime.getMinutes())
@@ -88,11 +97,11 @@ function getCurrentSunArcPosition(sunriseTime, sunsetTime){
     const daylightDuration = sunsetTimeInMinutes - sunriseTimeInMinutes
     const minutesSinceSunrise = currentTimeInMinutes - sunriseTimeInMinutes
 
-    let coefficient = Math.min(Math.max(minutesSinceSunrise / daylightDuration, 0), 1) // max ensures the value is at least 0    
-    coefficient =  Math.floor(coefficient * 10)                                                       // min ensures the value is not bigger than 1)
+    let coefficient = Math.min(Math.max(minutesSinceSunrise / daylightDuration, 0), 1) // max ensures the value is at least 0  
+    coefficient =  Math.ceil(coefficient * 10)                                        // min ensures the value is not bigger than 1)
 
-    return sunPositions[coefficient] //sunPositions is exported. Contains [cx, cy] for sun. Positions 0 to 9
-}
+    return sunPositions[coefficient] || [-10, -10] //sunPositions is exported. Contains [cx, cy] for sun. Positions 0 to 9
+}                                               // [-10, -10] for polar day/night. Removes the sun from the arc
 
 onMounted(() => {
     window.addEventListener('resize', updateWidth)  // adds listener to update screenWidth every time viewport changes 
@@ -132,22 +141,26 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateWidth))
         </div>
     </div>
     <div class="sun-info-container" v-if="!isHideSunInfo && sunInfo[day]">
-        <div class="sun-info-main">
-            <div class="sun-arc-container">
-                <svg viewBox="0 0 200 30" width="400" height="100" class="sun-arc">
-                    <path d="M0,80 A80,80 0 0,1 160,80" fill="none" stroke="#fbc02d" stroke-width="1.5" /> <!-- Arc -->
-                    <circle
-                    :cx="getCurrentSunArcPosition(sunInfo[day][0], sunInfo[day][2])[0]" 
-                    :cy="getCurrentSunArcPosition(sunInfo[day][0], sunInfo[day][2])[1]" 
-                    r="9"
-                    fill="#fdd835"/> <!-- sunInfo[day][0] is sunriseTime [2] - sunset. [0] is cx, [1] - cy -->
-                </svg>
+        <div class="sun-arc-container">
+            <svg viewBox="0 0 200 30" width="400" height="100" class="sun-arc">
+                <path d="M0,80 A80,80 0 0,1 160,80" fill="none" stroke="#fbc02d" stroke-width="1.5" /> <!-- Arc -->
+                <circle
+                :cx="getCurrentSunArcPosition(sunInfo[day][0], sunInfo[day][2])[0]" 
+                :cy="getCurrentSunArcPosition(sunInfo[day][0], sunInfo[day][2])[1]" 
+                r="9"
+                fill="#fdd835"/> <!-- sunInfo[day][0] is sunriseTime [2] - sunset. [0] is cx, [1] - cy -->
+            </svg>
+        </div>
+        <div class="sun-info-text">
+            <div class="sun-info-main-container" v-if="sunInfo[day]"> <!-- day is the key from for loop -->
+                <SunInfoForDayMain
+                :sun-info-for-day-main="sunInfo[day]">
+                </SunInfoForDayMain>
             </div>
-            <div class="sun-time-container" v-if="sunInfo[day]"> <!-- day is the key from for loop -->
-                <SunInfoForDay
-                :sun-info-for-day-main="sunInfo[day]"
-                :sun-info-for-day-additional="{}">
-                </SunInfoForDay>
+            <div class="sun-info-additional-container" v-if="sunInfo[day]">
+                <SunInfoForDayAdditional
+                :sun-info-for-day-additional="uvindexInfo[day]">
+                </SunInfoForDayAdditional>
             </div>
         </div>
     </div>
@@ -164,6 +177,8 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateWidth))
     background-color: #f5f5f5;
     border-radius: 1em;
     margin-bottom: 20px;
+    position: relative;
+    z-index: 2;
 }
 .weather-info-averages{
     display: flex;
@@ -174,7 +189,6 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateWidth))
     max-width: 1000px;
     width: 100%;
     border-radius: 1em;
-    /* border: black 1px solid; */
 }
 .labels-container{
     width: 97%;
@@ -210,19 +224,27 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateWidth))
     gap: 5px;
     padding-top: 8em;
     margin-right: 5em;
-    /* border: black 1px solid; */
     text-align: center;
-
+}
+.sun-info-text{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 2em;
 }
 .sun-info-main{
     display: flex;
     flex-direction: column;
     gap: 5px;
 }
-.sun-time-container{
+.sun-info-main-container{
     display: flex;
     gap: 4em;
     margin-right: 5em;
-    /* border: black 1px solid; */
+}
+.sun-info-additional-container{
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
 }
 </style>

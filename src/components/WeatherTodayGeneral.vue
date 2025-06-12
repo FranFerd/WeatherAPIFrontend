@@ -1,20 +1,10 @@
 <script setup>
-
+import { labelsMap } from '@/utils/labelsMap';
 const props = defineProps({
     dataGeneral: {
         type: Object
     }
 })
-
-const labelMap = {
-    description: 'Description',
-    precipitationType: 'Precipitation',
-    uvindex: 'UV index',
-    sunRise: 'Sunrise',
-    sunSet: 'Sunset',
-    highUvHours: "High UV hours",
-    dayLength: "Day Length"     
-}
 
 </script>
 
@@ -25,7 +15,7 @@ const labelMap = {
 <div class="weather-average-stats">
     <div class="stats-item" v-for="(value, key) in props.dataGeneral">
         <div class="item-label">
-            {{ labelMap[key] || key }}
+            {{ labelsMap[key] || key }}
         </div>
         <div class="item-value">
             {{ value }}

@@ -8,19 +8,19 @@ export function getUvDescription(uvIndex){
 
 export function setUvIndexHourly(data){
     const uvIndexHourly = []
-    for(let i = 0; i < data.value.length; i++){
+    for(let hourIndex = 0; hourIndex < data.length; hourIndex++){
         uvIndexHourly.push({
-            "time": data.value[i].datetime,
-            "uvindex": data.value[i].uvindex,
-            "description": getUvDescription(data.value[i].uvindex)
+            "time": data[hourIndex].datetime,
+            "uvindex": data[hourIndex].uvindex,
+            "description": getUvDescription(data[hourIndex].uvindex)
         })
     }
     return uvIndexHourly
 }
 
-export function showHighUvHoursMessage(uvIndexHourly){
+export function showHighUvHoursMessage(uvIndexHourlyData){
     const highUvHours = []
-    for (let hourData of uvIndexHourly){
+    for (let hourData of uvIndexHourlyData){
         if (hourData.uvindex >= 6){
             highUvHours.push(hourData.time.slice(0,5)) // Remove seconds
         }
