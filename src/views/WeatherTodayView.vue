@@ -7,6 +7,13 @@ import { useRoute } from 'vue-router';
 import calculateDayLength from '@/utils/calculateDayLength';
 import { getUvDescription, setUvIndexHourly, showHighUvHoursMessage } from '@/utils/uvIndex';
 
+const props = defineProps({
+    address : {
+        type: String,
+        required: true
+    }
+})
+
 const data = ref(null)
 const dataHourly = ref(null)
 const dataGeneral = ref(null)
@@ -17,13 +24,6 @@ const route = useRoute()
 const uvIndexHourly = ref([])
 const highUvHoursMessage = ref(null)
 const dayLength = ref(null)
-
-const props = defineProps({
-    address : {
-        type: String,
-        required: true
-    }
-})
 
 watch(() => route.params.address, (newAddress) => {
     addressUrl.value = newAddress
@@ -75,7 +75,8 @@ onMounted(async() => {
         dataHourly.value = fetchedWeatherData.days[0].hours || []
         dataHourly.value.forEach(roundUp)
 
-        uvIndexHourly.value = setUvIndexHourly(dataHourly)
+        uvIndexHourly.value = setUvIndexHourly(dataHourly.value)
+        console.log(uvIndexHourly.value)
         highUvHoursMessage.value = showHighUvHoursMessage(uvIndexHourly.value)
 
         dayLength.value = calculateDayLength(data.value)

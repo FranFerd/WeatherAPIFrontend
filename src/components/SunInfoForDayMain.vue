@@ -3,20 +3,16 @@ const props = defineProps({
     sunInfoForDayMain: {
         type: Array,
         required: true
-    },
-    sunInfoForDayAdditional: {
-        type: Object,
-        required: true
     }
 })
-console.log(props.sunInfoForDayMain)
 </script>
 <template>
-<div class="sun-info-for-day" v-for="sunItem in props.sunInfoForDayMain">
+<span class="sun-info-for-day-main" v-for="sunInfoMainItem in props.sunInfoForDayMain">
     <p class="sun-info-for-day-item">
-        {{ sunItem }}
+        {{ sunInfoMainItem }}
     </p>
-</div>
+</span>
+
 </template>
 <style scoped>
 .sun-info-for-day-item{
