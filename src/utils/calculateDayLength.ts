@@ -1,4 +1,6 @@
-export default function calculateDayLength(data){
+import type { WeatherDataForDayFull } from "../types/WeatherData.js"
+
+export default function calculateDayLength(data: WeatherDataForDayFull): string{
     const sunrise = data.sunrise
     const sunset = data.sunset
 
