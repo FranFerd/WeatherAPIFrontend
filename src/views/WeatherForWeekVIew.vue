@@ -94,6 +94,7 @@ function getAverage(element, valuesStartIndex){
 
 function fillSunDataAdditional(data, date, uvindex){
     uvIndexHourly.value[date] = setUvIndexHourly(data)
+    console.log(uvIndexHourly.value[date])
     highUvHoursMessage.value = showHighUvHoursMessage(uvIndexHourly.value[date])
     
     uvIndexForWeek.value[date] = {
