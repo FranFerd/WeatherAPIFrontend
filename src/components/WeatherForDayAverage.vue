@@ -12,8 +12,6 @@ const props = defineProps({
         default: false
     }
 })
-const matchersForIcons = weatherMatchersForIcons()
-const matchersForDisplay = weatherMathcersForDisplay()
 
 const filteredData = computed(() => {
     return props.dataForDayAverageMain.filter((item, index) => {
@@ -25,7 +23,7 @@ const filteredData = computed(() => {
 })
 
 function addIcon(description){
-    const iconKey = matchersForIcons[description]
+    const iconKey = weatherMatchersForIcons[description]
     return weatherIcons[iconKey] ? weatherIcons[iconKey] : weatherIcons.defautWeather
 }
 </script>
@@ -41,7 +39,7 @@ function addIcon(description){
                 class="weather-icon"
             >
             <p :class="(index === 0 || index === 2) ? 'item-word' : 'item-digit'"> <!-- index 0 is night, morning..., index 2 is weather condition -->
-                {{ matchersForDisplay[item] || item}}
+                {{ weatherMathcersForDisplay[item] || item}}
             </p>
         <div v-if="(index === 4)"> <!-- index 4 is windspeed -->
             <p class="wind-speed-unit">m/s</p>

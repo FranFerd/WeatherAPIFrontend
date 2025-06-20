@@ -1,5 +1,6 @@
 <script setup>
 import { labelsMap } from '@/utils/labelsMap';
+// import type { LabelsMap } from '../utils/labelsMap';
 const props = defineProps({
     dataGeneral: {
         type: Object

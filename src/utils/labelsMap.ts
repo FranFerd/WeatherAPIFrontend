@@ -6,4 +6,6 @@ export const labelsMap = {
     sunSet: 'Sunset',
     highUvHours: "High UV hours",
     dayLength: "Day Length"     
-}
+} as const
+
+export type LabelsMap = typeof labelsMap

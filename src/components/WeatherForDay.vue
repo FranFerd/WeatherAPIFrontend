@@ -6,6 +6,7 @@ import { sunPositions } from '@/utils/sunPositions'
 import WeatherForDayAverage from './WeatherForDayAverage.vue'
 import SunInfoForDayMain from './SunInfoForDayMain.vue'
 import SunInfoForDayAdditional from './SunInfoForDayAdditional.vue'
+// import type { SunPositions } from '../utils/sunPositions'
 
 const props = defineProps({
     weatherInfo: {

@@ -9,4 +9,6 @@ export const sunPositions = {
     8: [138, 24],
     9: [146, 40],
     10: [-10, -10] // no sun
-}
+} as const
+
+export type SunPositions = typeof sunPositions

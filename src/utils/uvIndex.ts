@@ -1,4 +1,9 @@
-export function getUvDescription(uvIndex){
+import type { HourlyInfo } from "../types/WeatherData.js"
+import type { UvIndexHourlyFull } from "../types/UvIndexData.js"
+
+type UvDescription = 'Low' | 'Moderate' | 'High' | 'Very High' | 'Extreme'
+
+export function getUvDescription(uvIndex: number): UvDescription{
     if (uvIndex <= 2) return 'Low'
     if (uvIndex <=5) return 'Moderate' 
     if (uvIndex <=7) return 'High'
@@ -6,8 +11,8 @@ export function getUvDescription(uvIndex){
     return 'Extreme'
 }
 
-export function setUvIndexHourly(data){
-    const uvIndexHourly = []
+export function setUvIndexHourly(data: HourlyInfo[]): UvIndexHourlyFull[]{
+    const uvIndexHourly: UvIndexHourlyFull[] = []
     for(let hourIndex = 0; hourIndex < data.length; hourIndex++){
         uvIndexHourly.push({
             "time": data[hourIndex].datetime,
@@ -18,8 +23,8 @@ export function setUvIndexHourly(data){
     return uvIndexHourly
 }
 
-export function showHighUvHoursMessage(uvIndexHourlyData){
-    const highUvHours = []
+export function showHighUvHoursMessage(uvIndexHourlyData: UvIndexHourlyFull[]): string{
+    const highUvHours: string[] = []
     for (let hourData of uvIndexHourlyData){
         if (hourData.uvindex >= 6){
             highUvHours.push(hourData.time.slice(0,5)) // Remove seconds
