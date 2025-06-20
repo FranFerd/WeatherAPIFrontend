@@ -2,11 +2,12 @@
 import WeatherForDay from '@/components/WeatherForDay.vue';
 import AddressWeek from '@/components/AddressWeek.vue';
 import calculateDayLength from '@/utils/calculateDayLength';
-import getWeatherPriorityObject from '@/utils/getWeatherPriorityObject'
+import { weatherPriorityObject } from '@/utils/getWeatherPriorityObject'
 import { setUvIndexHourly, showHighUvHoursMessage, getUvDescription } from '@/utils/uvIndex';
 import axios from 'axios';
 import { onMounted, watch, ref} from 'vue';
 import { useRoute } from 'vue-router';
+// import type { WeatherPriority } from '../utils/getWeatherPriorityObject';
 
 const props = defineProps({
     address : {
@@ -81,7 +82,7 @@ function getAverage(element, valuesStartIndex){
         average = Math.floor(sum/values.length)
     }
     else if(typeof(values[0] === 'string')){
-        const weatherPriorityListObject = getWeatherPriorityObject() 
+        const weatherPriorityListObject = weatherPriorityObject
         average = values.reduce((initial, current) => {  // initial is the first value because nothing is passed at the end (unlike 0 in previous reduce)
             return weatherPriorityListObject[current] > weatherPriorityListObject[initial] ? current : initial
         })
