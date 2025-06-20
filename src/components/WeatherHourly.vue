@@ -10,12 +10,9 @@ const props = defineProps({
 })
 const scrollContainer = ref(null)
 const dataHourly = ref([])
-const matchersForIcons = weatherMatchersForIcons()
-const matchersForDisplay = weatherMathcersForDisplay()
-
 
 function getWeatherIcon(weatherDescription) {
-    const iconKey = matchersForIcons[weatherDescription]
+    const iconKey = weatherMatchersForIcons[weatherDescription]
     return weatherIcons[iconKey]? weatherIcons[iconKey] : weatherIcons.defaultWeather;
 }
 
@@ -83,7 +80,7 @@ onMounted(async () => {
                 {{ item.datetime === getCurrentTimeString() ? 'Now' : timeWithoutSeconds(item.datetime) }}
             </div>
             <div>
-                <img :src="getWeatherIcon(item.icon)" :alt="item.icon" class="weatherIcon" :title="matchersForDisplay[item.icon]">
+                <img :src="getWeatherIcon(item.icon)" :alt="item.icon" class="weatherIcon" :title="weatherMathcersForDisplay[item.icon]">
             </div>
             <div :class="{temperature : item.temp > 0 || item.temp < 0, 'temperature-shift-right' : item.temp === 0}"> <!--shift to right if it's 0 -->
                 <div>                                                                                      <!-- which doesn't have + or -. Alignment -->     
