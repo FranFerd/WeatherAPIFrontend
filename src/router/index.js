@@ -31,7 +31,6 @@ const router = createRouter({
       path: '/weather/today/:address',
       name: 'weatherToday',
       component: WeatherTodayView,
-      props: true,
       meta: {requiresAuth: true}
     },
     {

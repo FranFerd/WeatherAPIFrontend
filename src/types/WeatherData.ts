@@ -25,6 +25,16 @@ export interface HourlyInfo {
 export type HourlyInfoKey = keyof HourlyInfo
 export type ItemToPushKey = 'temp' | 'icon' | 'feelslike' | 'windspeed'
 
+export interface DataGeneralForDay {
+    description : string,
+    uvindex: string,
+    sunRise : string
+    sunSet : string,
+    dayLength : string,
+    precipitationType?: string,
+    highUvHours?: string
+}
+
 export interface WeatherDataForWeekRaw {
     address: string,
     days: WeatherDataForDayFull[],
