@@ -22,3 +22,34 @@ export interface HourlyInfo {
     uvindex: number,
     windspeed: number
 } 
+export type HourlyInfoKey = keyof HourlyInfo
+export type ItemToPushKey = 'temp' | 'icon' | 'feelslike' | 'windspeed'
+
+export interface DataGeneralForDay {
+    description : string,
+    uvindex: string,
+    sunRise : string
+    sunSet : string,
+    dayLength : string,
+    precipitationType?: string,
+    highUvHours?: string
+}
+
+export interface WeatherDataForWeekRaw {
+    address: string,
+    days: WeatherDataForDayFull[],
+    resolvedAddress: string
+}
+
+export interface WeatherDataForWeekRefined {
+    [date: string]: WeatherDataForDayRefined[]
+}
+
+export type WeatherDataForDayRefined = [
+    timeOfDay: TimeOfDay,
+    temperature?: number,
+    description?: string,
+    feelsLike?: number,
+    windSpeed?: number
+]
+type TimeOfDay = 'night' | 'morning' | 'afternoon' | 'evening'

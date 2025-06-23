@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
     import HomeIntroduction from '@/components/HomeIntroduction.vue';
     import HomeAppFunctions from '@/components/HomeAppFunctions.vue';
 </script>

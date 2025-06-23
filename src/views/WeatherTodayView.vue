@@ -1,52 +1,55 @@
-<script setup>
-import WeatherHourly from '@/components/WeatherHourly.vue';
-import WeatherTodayGeneral from '@/components/WeatherTodayGeneral.vue';
-import axios from 'axios';
+<script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
+import axios from 'axios';
+
+import WeatherHourly from '@/components/WeatherHourly.vue';
+import WeatherTodayGeneral from '@/components/WeatherTodayGeneral.vue';
+
 import calculateDayLength from '@/utils/calculateDayLength';
 import { getUvDescription, setUvIndexHourly, showHighUvHoursMessage } from '@/utils/uvIndex';
+import { DataGeneralForDay, HourlyInfo, WeatherDataForDayFull, WeatherDataForWeekRaw } from '@/types/WeatherData';
+import { UvindexHourlyDescription } from '@/types/UvIndexData';
 
-const props = defineProps({
-    address : {
-        type: String,
-        required: true
-    }
-})
 
-const data = ref(null)
-const dataHourly = ref(null)
-const dataGeneral = ref(null)
-const addressUrl = ref(null)
-const resolvedAddress = ref(null)
-const message = ref(null)
 const route = useRoute()
-const uvIndexHourly = ref([])
-const highUvHoursMessage = ref(null)
-const dayLength = ref(null)
+
+const data = ref<WeatherDataForDayFull | null>(null)
+const dataHourly = ref<HourlyInfo[] | null>(null)
+const dataGeneral = ref<DataGeneralForDay | null>(null)
+
+const addressUrl = ref<string>('')
+const resolvedAddress = ref<string>('')
+
+const message = ref<string>('')
+
+const highUvHoursMessage = ref<string>('')
+const uvindexHourly = ref<UvindexHourlyDescription[] | null>(null)
+
+const dayLength = ref<string>('')
 
 watch(() => route.params.address, (newAddress) => {
-    addressUrl.value = newAddress
+    addressUrl.value = String(newAddress)
 }, {immediate:true})
 
-async function fetchWeatherToday(location) {   
+async function fetchWeatherToday(location: string): Promise<WeatherDataForWeekRaw | null> {   
     try{
         const response = await axios.get(`http://127.0.0.1:5000/weather/hourly/${location}/1`) // '0' to get 1 day - today
         return response.data
     }
     catch(error){
         console.error(error)
+        return null
     }
 }
 
-function setDataGeneral(data){
+function setDataGeneral(data: WeatherDataForDayFull): void{
     if(data){
-        
         const [sunRiseHours, sunRiseMinutes] = data.sunrise.split(':')
         const [sunSetHours, sunSetMinutes] = data.sunset.split(':')
 
-        const sunRise = `${sunRiseHours}:${sunRiseMinutes}`
-        const sunSet = `${sunSetHours}:${sunSetMinutes}`
+        const sunRise: string = `${sunRiseHours}:${sunRiseMinutes}`
+        const sunSet: string = `${sunSetHours}:${sunSetMinutes}`
     
         dataGeneral.value = {
             "description" : data.conditions,
@@ -61,32 +64,34 @@ function setDataGeneral(data){
         }
     }
 
-function roundUp(element,index,array){
-    array[index].temp = +Math.round(array[index].temp)
-    array[index].feelslike = +Math.round(array[index].feelslike)
+function roundUp(element: HourlyInfo): void{
+    element.temp = +Math.round(element.temp)
+    element.feelslike = +Math.round(element.feelslike)
 }
 
 onMounted(async() => {
     try{
         const fetchedWeatherData = await fetchWeatherToday(addressUrl.value)
-        resolvedAddress.value = fetchedWeatherData.resolvedAddress
-        data.value = fetchedWeatherData.days[0]
+        if(fetchedWeatherData){
+            resolvedAddress.value = fetchedWeatherData.resolvedAddress || ''
+            data.value = fetchedWeatherData.days[0] || null
+            dataHourly.value = fetchedWeatherData.days[0].hours || null
+        }
         
-        dataHourly.value = fetchedWeatherData.days[0].hours || []
-        dataHourly.value.forEach(roundUp)
+        if(dataHourly.value){
+          dataHourly.value.forEach(roundUp)  
+          uvindexHourly.value = setUvIndexHourly(dataHourly.value)
+          highUvHoursMessage.value = showHighUvHoursMessage(uvindexHourly.value)
+        } 
 
-        uvIndexHourly.value = setUvIndexHourly(dataHourly.value)
-        console.log(uvIndexHourly.value)
-        highUvHoursMessage.value = showHighUvHoursMessage(uvIndexHourly.value)
-
-        dayLength.value = calculateDayLength(data.value)
-
-        setDataGeneral(data.value)
+        if(data.value) {
+            dayLength.value = calculateDayLength(data.value)
+            setDataGeneral(data.value)
+        }
     }
     catch(error){
         console.error('Error: ', error)
         message.value = 'Failed to load weather data'
-        data.value = []
     }
 })
 </script>

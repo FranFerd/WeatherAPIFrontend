@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import WeatherSearch from '@/components/WeatherSearch.vue';
 </script>
 
