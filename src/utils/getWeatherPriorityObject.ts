@@ -14,3 +14,4 @@ export const weatherPriorityObject = {
 } as const
 
 export type WeatherPriority = typeof weatherPriorityObject
+export type WeatherKey = keyof WeatherPriority // keyof gets the keys of a type as a union of string literal types (can only be of these exact string types)

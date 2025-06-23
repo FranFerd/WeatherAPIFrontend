@@ -1,5 +1,5 @@
 import type { HourlyInfo } from "../types/WeatherData.js"
-import type { UvIndexHourlyFull } from "../types/UvIndexData.js"
+import type { UvindexHourlyDescription } from "../types/UvIndexData.js"
 
 type UvDescription = 'Low' | 'Moderate' | 'High' | 'Very High' | 'Extreme'
 
@@ -11,8 +11,8 @@ export function getUvDescription(uvIndex: number): UvDescription{
     return 'Extreme'
 }
 
-export function setUvIndexHourly(data: HourlyInfo[]): UvIndexHourlyFull[]{
-    const uvIndexHourly: UvIndexHourlyFull[] = []
+export function setUvIndexHourly(data: HourlyInfo[]): UvindexHourlyDescription[]{
+    const uvIndexHourly: UvindexHourlyDescription[] = []
     for(let hourIndex = 0; hourIndex < data.length; hourIndex++){
         uvIndexHourly.push({
             "time": data[hourIndex].datetime,
@@ -23,7 +23,7 @@ export function setUvIndexHourly(data: HourlyInfo[]): UvIndexHourlyFull[]{
     return uvIndexHourly
 }
 
-export function showHighUvHoursMessage(uvIndexHourlyData: UvIndexHourlyFull[]): string{
+export function showHighUvHoursMessage(uvIndexHourlyData: UvindexHourlyDescription[]): string{
     const highUvHours: string[] = []
     for (let hourData of uvIndexHourlyData){
         if (hourData.uvindex >= 6){
