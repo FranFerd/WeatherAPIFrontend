@@ -1,44 +1,44 @@
-<script setup>
+<script setup lang="ts">
+  import { useRoute } from 'vue-router';
+  import { onMounted, ref } from 'vue';
+  import { useRouter } from 'vue-router';
+  import { storeToRefs } from 'pinia'
+  
   import { useAuthStore } from '@/stores/auth';
   import { clearAuth } from '@/authService/auth';
-  import { useRoute } from 'vue-router';
-  import { computed, onMounted, ref } from 'vue';
-  import { useRouter } from 'vue-router';
 
   const route = useRoute()
   const router = useRouter()
-  const auth = useAuthStore()
+
+  const authStore = useAuthStore()
+  const { username, isLoggedIn } = storeToRefs(authStore)
+
   const showDropdown = ref(false)
-  const username = computed(() => auth.currentUser)
-  const isLoggedIn = computed(() => auth.isLoggedIn)
+  
+  function isActive(urlComponent: string): boolean{
+    if (route.fullPath.includes(urlComponent)){
+      return true
+    }
+    return false
+  }
+  
+  function handleLogout(): void{
+    clearAuth()
+    window.location.href = '/login'
+  }
+  
+  function redirectLogin(): void{
+    router.push('/login')
+  }
 
   onMounted(async() => {
-    await auth.initialize()
+    await authStore.initialize()
     console.log('Current auth state:', {
       isLoggedIn: isLoggedIn.value,
       username: username.value,
       token: localStorage.getItem('token')
     }) 
   })
-
-
-
-  function isActive(urlComponent){
-      if (route.fullPath.includes(urlComponent)){
-        return true
-      }
-    }
-
-  function handleLogout(){
-    clearAuth()
-  
-    window.location.href = '/login'
-  }
-
-  function redirectLogin(){
-    router.push('/login')
-  }
-
 </script>
 
 <template>

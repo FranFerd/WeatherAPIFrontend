@@ -1,10 +1,9 @@
-<script setup>
-const props = defineProps({
-    sunInfoForDayMain: {
-        type: Array,
-        required: true
-    }
-})
+<script setup lang="ts">
+import type { SunInfoForDay } from '@/types/SunInfo';
+
+const props = defineProps<{
+    sunInfoForDayMain: SunInfoForDay
+}>()
 </script>
 <template>
 <span class="sun-info-for-day-main" v-for="sunInfoMainItem in props.sunInfoForDayMain">
