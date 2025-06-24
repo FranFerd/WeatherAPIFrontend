@@ -1,38 +1,36 @@
-<script setup>
+<script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import switchDayOfWeek from '@/utils/switchDayOfWeek'
-import switchMonth from '@/utils/switchMonth'
-import { sunPositions } from '@/utils/sunPositions'
+
 import WeatherForDayAverage from './WeatherForDayAverage.vue'
 import SunInfoForDayMain from './SunInfoForDayMain.vue'
 import SunInfoForDayAdditional from './SunInfoForDayAdditional.vue'
-// import type { SunPositions } from '../utils/sunPositions'
 
-const props = defineProps({
-    weatherInfo: {
-        type: Object,
-        required: true
-    },
-    sunInfo: {
-        type: Object,
-        required: true
-    },
-    uvindexInfo: {
-        type: Object,
-        required: true
-    }
-})
+import switchDayOfWeek from '@/utils/switchDayOfWeek'
+import switchMonth, { MonthStringIndex } from '@/utils/switchMonth'
+import { sunPositions } from '@/utils/sunPositions'
+
+import type { WeatherDataForWeekRefined } from '@/types/WeatherData'
+import type { SunInfoForWeek } from '@/types/SunInfo'
+import type { UvindexAndHighUvHoursForWeek } from '@/types/UvIndexData'
+
+const props = defineProps<{
+    weatherInfo: WeatherDataForWeekRefined,
+    sunInfo: SunInfoForWeek,
+    uvindexInfo: UvindexAndHighUvHoursForWeek
+}>()
 
 const weatherWeekly = ref(props.weatherInfo)
 const sunInfo = ref(props.sunInfo)
 const uvindexInfo = ref(props.uvindexInfo)
-const screenWidth = ref(window.innerWidth)
+
+const screenWidth = ref<number>(window.innerWidth)
+
 const isHideSunInfo = isWidthSmaller(1250)
 const isHideLabels = isWidthSmaller(900)
 
-function numberDateToWordDate(numberDate){ // 2025-06-07 YYYY-MM-DD
+function numberDateToWordDate(numberDate: string): string{ // 2025-06-07 YYYY-MM-DD
     const date = numberDate.slice(5)
-    const numberMonth = date.slice(0,2)
+    const numberMonth: MonthStringIndex = date.slice(0,2)
     let numberDay = date.slice(3)
     
     if(numberDay[0] === '0'){
@@ -106,12 +104,13 @@ function getCurrentSunArcPosition(sunriseTime, sunsetTime){
 
 onMounted(() => {
     window.addEventListener('resize', updateWidth)  // adds listener to update screenWidth every time viewport changes 
-
+    console.log(props.sunInfo)
+    console.log(props.uvindexInfo)
+    console.log(props.weatherInfo)
 })  
 
 onBeforeUnmount(() => window.removeEventListener('resize', updateWidth))
 </script>
-
 <template>
 <div class="weather-info-container" v-for="(dataForWeek, day) in weatherWeekly" :key="day">
     <div class="weather-info-averages">
@@ -166,10 +165,7 @@ onBeforeUnmount(() => window.removeEventListener('resize', updateWidth))
         </div>
     </div>
 </div>
-
-
 </template>
-
 <style scoped>
 .weather-info-container{
     display: flex;
