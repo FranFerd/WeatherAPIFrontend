@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
+    "baseUrl": "./src",
     "target": "ESNext",
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
+    "module": "esnext",
+    "moduleResolution": "node",
     "strict": true,
     "jsx": "preserve",
     "esModuleInterop": true,
@@ -12,8 +13,8 @@
     "skipLibCheck": true,
     "types": ["vite/client"],
     "paths": {
-      "@/*" : ["./src/*"]
+      "@/*" : ["*"]
     }
   },
-  "include": ["./src/**/*.ts", "./src/**/*.d.ts", "./src/**/*.tsx", "./src/**/*.vue", "src/utils/calculateDayLength.js", "src/stores/counter.js", "src/router/index.js", "src/authService/auth.js", "src/stores/auth.js"]
+  "include": ["src"]
 }

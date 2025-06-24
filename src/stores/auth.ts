@@ -1,32 +1,24 @@
-// src/stores/auth.js
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+
 import { login, logout, isAuthenticated, authToken, init } from '@/authService/auth'
 
-export const useAuthStore = defineStore('auth', () => {
-  const username = ref(null)
+import type { Credentials } from '@/types/User'
 
-    // Computed properties
-    const _isLoggedIn = ref(false) // Internal state
-  
-    // Computed properties
-    const isLoggedIn = computed({
-      get: () => isAuthenticated.value,
-      set: (val) => { _isLoggedIn.value = val }
-    })
-    const currentUser = computed(() => username.value)
-  
-  // Initialize auth state
-  async function initialize() {
-    init()
-    if (isAuthenticated.value) {
-      // Extract username from token (you'll need to decode JWT)
+export const useAuthStore = defineStore('auth', () => {
+  const username = ref<string | null>(null)
+
+  const isLoggedIn = isAuthenticated // not ref, just giving it a different name. Any changes to isAuthenticated change isLoggedIn
+
+  async function initialize(): Promise<void> {
+    init() // set axios header and check localstorage for token
+    if (authToken.value && isAuthenticated.value) {
       username.value = decodeUsername(authToken.value)
     }
   }
   
   // Helper to decode JWT
-  function decodeUsername(token) {
+  function decodeUsername(token: string | null): string | null {
     if (!token) return null
     try {
       const payload = JSON.parse(atob(token.split('.')[1]))
@@ -36,25 +28,19 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
   
-  // Login action
-  async function userLogin(credentials) {
+  async function userLogin(credentials: Credentials): Promise<void> {
     await login(credentials)
     username.value = decodeUsername(authToken.value)
-    _isLoggedIn.value = true
   }
   
-  // Logout action
-  async function userLogout() {
+  async function userLogout(): Promise<void> {
     await logout()
     username.value = null
-    _isLoggedIn.value = false
   }
   
-
   return {
     username,
     isLoggedIn,
-    currentUser,
     initialize,
     login: userLogin,
     logout: userLogout,

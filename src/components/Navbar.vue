@@ -9,7 +9,7 @@
   const router = useRouter()
   const auth = useAuthStore()
   const showDropdown = ref(false)
-  const username = computed(() => auth.currentUser)
+  const username = computed(() => auth.username)
   const isLoggedIn = computed(() => auth.isLoggedIn)
 
   onMounted(async() => {

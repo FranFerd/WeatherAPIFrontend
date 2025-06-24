@@ -1,52 +1,65 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
-import { login } from '@/authService/auth'
 import { useRouter, useRoute } from 'vue-router'
+import axios from 'axios'
+import { storeToRefs } from 'pinia'
+
 import { useAuthStore } from '@/stores/auth'
+
+import type { Credentials } from '@/types/User' 
 
 const router = useRouter()
 const route = useRoute()
+
 const authStore = useAuthStore()
-const message = ref(null)
+const {username, isLoggedIn} = storeToRefs(authStore)
+
+const message = ref('')
+
 const isSignUp = ref(false)
-const credentials = ref({
+
+const credentials = ref<Credentials>({
   username: '',
   password: ''
 })
 
-async function handleLogin() {
+async function handleLogin(): Promise<void> {
   try {
-    await login(credentials.value)
+    await authStore.login(credentials.value)
+    
+    console.log('Username:', username.value) // should show username
 
-    console.log('Login state:', authStore.isLoggedIn) // true
-    console.log('Username:', authStore.username) // should show username
-
-    authStore.username = credentials.value.username
-    authStore.isLoggedIn = true
+    console.log('Status:', isLoggedIn.value)
     message.value = 'Logged in successfully'
+
     // Redirect on success
     const redirect = route.query.redirect || '/home'
     setTimeout(() => {
-      router.push(redirect)
+      router.push(String(redirect))
     }, 1500);
 
-  } catch (error) {
-    console.error('Full error:', error)
-    console.error('Response data:', error.response?.data)
-    alert(error.response?.data?.msg || 'Login failed' + error.message)
+  } catch (error: unknown) {
+    if(axios.isAxiosError(error)){
+      console.error('Response data:', error.response?.data)
+      alert(error.response?.data?.msg || 'Login failed' + error.message)
+    }
+    else if(error instanceof Error){
+      alert('Login failed' + error.message)
+    }
+    else{
+      alert('Login failed due to an unknown error')
+    }
   }
 }
-function handleSwitch(){
+
+function handleSwitch(): void{
   isSignUp.value = !isSignUp.value
-  console.log(isSignUp.value)
 }
 
 async function handleSignUp(){
   
 }
-
 </script>
-
 <template>
   <div class="login-container" v-if="!isSignUp">
     <h1 class="login-label">Login</h1>
@@ -68,13 +81,11 @@ async function handleSignUp(){
           <button type="button" class="signup-button" @click="handleSwitch">Sign up</button>
         </span>
       </div>
-      
     </form>
     <div class="message">
     {{ message }}
     </div>
   </div>
-
   <div class="login-container" v-if="isSignUp">
     <h1 class="login-label">Sign up</h1>
     <form @submit.prevent="handleSignUp">
@@ -95,90 +106,85 @@ async function handleSignUp(){
           <button type="button" class="signup-button" @click="handleSwitch">Login</button>
         </span>
       </div>
-
     </form>
     <div class="message">
     {{ message }}
     </div>
   </div>
-
 </template>
-
 <style scoped>
-  .login-container{
-    display: flex;
-    margin-top: 10%;
-    flex-direction: column;
-    align-items: center;
+.login-container{
+  display: flex;
+  margin-top: 10%;
+  flex-direction: column;
+  align-items: center;
+}
+.login-label{
+  margin-bottom: 10px;
+}
+.username-box{
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+.username-input{
+  font-size: 1em;
+  width: 400px;
+  height: 20px;
+  padding: 8px;
+  border-radius: 5px;
+  border: none;
+}
+.username-input:focus{
+  box-shadow: 0px 0px 10px rgb(89, 89, 252);
+  outline: none;
+}
+.password-input{
+  font-size: 1em;
+  width: 400px;
+  height: 20px;
+  padding: 8px;
+  border-radius: 5px;
+  border: none
+}
+.password-input:focus{
+  box-shadow: 0px 0px 20px rgb(89, 89, 252);
+  outline: none;
+}
+.password-input{
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+.login-button, .signup-button{
+  height: 30px;
+  width: 80px;
+  background-color: hsl(180, 100%, 50%);
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  margin-right: auto;
   }
-  .login-label{
-    margin-bottom: 10px;
-  }
-  .username-box{
-    margin-top: 10px;
-    margin-bottom: 10px;
-  }
-  .username-input{
-    font-size: 1em;
-    width: 400px;
-    height: 20px;
-    padding: 8px;
-    border-radius: 5px;
-    border: none;
-  }
-  .username-input:focus{
-    box-shadow: 0px 0px 10px rgb(89, 89, 252);
-    outline: none;
-  }
-  .password-input{
-    font-size: 1em;
-    width: 400px;
-    height: 20px;
-    padding: 8px;
-    border-radius: 5px;
-    border: none
-  }
-  .password-input:focus{
-    box-shadow: 0px 0px 20px rgb(89, 89, 252);
-    outline: none;
-  }
-
-  .password-input{
-    margin-top: 10px;
-    margin-bottom: 10px;
-  }
-  .login-button, .signup-button{
-    height: 30px;
-    width: 80px;
-    background-color: hsl(180, 100%, 50%);
-    border-radius: 5px;
-    border: none;
-    cursor: pointer;
-    margin-right: auto;
-    }
-  .login-button:hover, .signup-button:hover{
-    background-color: hsl(180, 100%, 40%);
-    transition: background-color 0.3s ease
-  }
-  .submit-box{
-    display: flex;
-    margin-top: 10px;
-  }
-  .switch-box{
-    display: flex;
-    flex-direction: row;
-    gap: 1em
-  }
-  .switch-box__wrapper{
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-  .message{
-    /* position: relative; */
-    margin-top: 2em;
-    font-size: 2em;
-    color: rgb(0, 163, 0);
-  }
-
+.login-button:hover, .signup-button:hover{
+  background-color: hsl(180, 100%, 40%);
+  transition: background-color 0.3s ease
+}
+.submit-box{
+  display: flex;
+  margin-top: 10px;
+}
+.switch-box{
+  display: flex;
+  flex-direction: row;
+  gap: 1em
+}
+.switch-box__wrapper{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.message{
+  /* position: relative; */
+  margin-top: 2em;
+  font-size: 2em;
+  color: rgb(0, 163, 0);
+}
 </style>
