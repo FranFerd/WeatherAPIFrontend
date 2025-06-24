@@ -33,8 +33,8 @@ const dataWeeklyRefined =  ref<WeatherDataForWeekRefined>({})
 
 const sunInfo = ref<SunInfoForWeek>({})
 const uvindexHourly = ref<UvindexForDay>({})
-const highUvHoursMessage = ref<string>('')
 const uvindexForWeek = ref<UvindexAndHighUvHoursForWeek>({})
+const highUvHoursMessage = ref<string>('')
 
 watch(() => route.params.address, (newAddress) => {
     addressUrl.value = String(newAddress)

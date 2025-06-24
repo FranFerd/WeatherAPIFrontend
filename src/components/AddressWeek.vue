@@ -1,10 +1,7 @@
 <script setup lang="ts">
-const props = defineProps({
-    address: {
-        type: String,
-        required: true
-    }
-})
+const props = defineProps<{
+    address: string
+}>()
 </script>
 
 <template>
