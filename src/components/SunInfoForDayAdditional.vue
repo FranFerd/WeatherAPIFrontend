@@ -1,12 +1,11 @@
-<script setup>
+<script setup lang="ts">
 import { labelsMap } from '@/utils/labelsMap';
-// import type { LabelsMap } from '../utils/labelsMap';
-const props = defineProps({
-    sunInfoForDayAdditional: {
-        type: Object
-    }
-})
-function getUvColor(description){
+
+import type { UvindexAndHighUvHoursForDay } from '@/types/UvIndexData';
+const props = defineProps<{
+    sunInfoForDayAdditional: UvindexAndHighUvHoursForDay
+}>()
+function getUvColor(description: string): string{
     if(description.includes('low')){
         return 'low'
     }

@@ -1,6 +1,6 @@
-<script setup lang=ts>
+<script setup lang="ts">
   import { useRoute } from 'vue-router';
-  import { computed, onMounted, ref } from 'vue';
+  import { onMounted, ref } from 'vue';
   import { useRouter } from 'vue-router';
   import { storeToRefs } from 'pinia'
   
