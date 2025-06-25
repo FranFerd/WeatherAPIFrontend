@@ -8,7 +8,11 @@ export const weatherMatchersForIcons = {
     'snow': 'snow',
     'fog': 'fog'
 } as const
-export type WeatherMatchersForIcons = typeof weatherMatchersForIcons
+
+export const WEATHER_ICONS_KEYS = [
+    'partly-cloudy-day', 'partly-cloudy-night', 'cloudy', 'rain',
+    'clear-night', 'clear-day', 'snow', 'fog'
+] as const
 
 export const weatherMathcersForDisplay = {
     'partly-cloudy-day': 'partly cloudy day',
@@ -20,4 +24,3 @@ export const weatherMathcersForDisplay = {
     'snow': 'snow',
     'fog': 'fog'
 } as const
-export type WeatherMatchersForDisplay = typeof weatherMathcersForDisplay

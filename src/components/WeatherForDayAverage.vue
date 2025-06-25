@@ -1,45 +1,65 @@
-<script setup>
-import { weatherIcons } from '@/assets/icons/icons';
+<script setup lang="ts">
 import { computed } from 'vue';
-import { weatherMatchersForIcons, weatherMathcersForDisplay } from '@/utils/weatherMatchersForIcons';
-const props = defineProps({
-    dataForDayAverageMain: {
-        type: Array,
-        required: true
-    },
-    isHideLabels: {
-        type: Boolean,
-        default: false
+
+import { weatherMatchersForIcons, WEATHER_ICONS_KEYS } from '@/utils/weatherMatchersForIcons';
+
+import { weatherIcons } from '@/assets/icons/icons';
+
+import { WeatherDataForDayRefined, WeatherDataForDayRefinedBasic } from '@/types/WeatherData';
+const props = defineProps<{
+    dataForDayAverageMain: WeatherDataForDayRefined,
+    isHideLabels: boolean
+}>()
+
+const filteredData = computed<WeatherDataForDayRefined | WeatherDataForDayRefinedBasic>(() => {
+    const [time, temp, desc] = props.dataForDayAverageMain
+    if(!props.isHideLabels) return props.dataForDayAverageMain
+
+    if(
+        typeof time === 'string' &&
+        typeof temp === 'number' &&
+        typeof desc === 'string'
+    ){
+        return [time, temp, desc]
     }
+
+    return ['time of day', 0, 'weather description'] // Fallback to default values, in case temp or desc are undefined
 })
 
-const filteredData = computed(() => {
-    return props.dataForDayAverageMain.filter((item, index) => {
-        if(props.isHideLabels && (index === 3 || index === 4)){ // Skip index 3 and 4 if isHideLabels. Feelslike and windspeed
-            return false // return true to keep the element, false to exclude it
-        }
-        return true // keep this item
-    })
-})
+function addIcon(description: typeof WEATHER_ICONS_KEYS[number]): string{ // "Give me the union of all possible values in this array or tuple and typeof it."
+    const iconKey = weatherMatchersForIcons[description]          // If it's as const, then it would give its precise values, instead of 'string' or 'number' for example.
+    return weatherIcons[iconKey] ? weatherIcons[iconKey] : weatherIcons.defaultWeather
+}
 
-function addIcon(description){
-    const iconKey = weatherMatchersForIcons[description]
-    return weatherIcons[iconKey] ? weatherIcons[iconKey] : weatherIcons.defautWeather
+function isWeatherMatchersForIconsKey(item: unknown): item is typeof WEATHER_ICONS_KEYS[number]{
+    return typeof item === 'string' && ((WEATHER_ICONS_KEYS as readonly string []).includes(item))
+}
+
+function isGreaterThanZeroAndIsTemperature(item: unknown, index: number): boolean{
+    return typeof item === 'number' && item > 0 && (index === 1 || index === 3) // index 1 - temperature, index 3 - feelslike
+}
+
+function isWeatherDescriptionAndHasIcon(item: typeof WEATHER_ICONS_KEYS[number], index: number): boolean{
+    return index === 2 && !!addIcon(item) // index 2 is weatherDescription
+}
+
+function isItemWord(index: number): boolean{
+    return index === 0 || index === 2 // index 0 is partOfDay (night, morning, etc)
 }
 </script>
 <template>
     <div class="weather-info-item" v-for="(item, index) in filteredData" :key="index">
-        <div v-if="(item > 0) && (index === 1 || index === 3)" > <!-- index 1 is temperature, index 3 is feelslike -->
+        <div v-if="isGreaterThanZeroAndIsTemperature(item, index)" >
             <p>+</p>
         </div>
         <div class="item-container">
-            <img v-if="typeof item === 'string' && addIcon(item)"
+            <img v-if="isWeatherMatchersForIconsKey(item) && isWeatherDescriptionAndHasIcon(item, index)"
                 :src="addIcon(item)"
                 alt="weather icon"
                 class="weather-icon"
             >
-            <p :class="(index === 0 || index === 2) ? 'item-word' : 'item-digit'"> <!-- index 0 is night, morning..., index 2 is weather condition -->
-                {{ weatherMathcersForDisplay[item] || item}}
+            <p :class="isItemWord(index) ? 'item-word' : 'item-digit'"> <!-- index 0 is night, morning..., index 2 is weather condition -->
+                {{ item }}
             </p>
         <div v-if="(index === 4)"> <!-- index 4 is windspeed -->
             <p class="wind-speed-unit">m/s</p>

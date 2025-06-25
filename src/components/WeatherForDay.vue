@@ -117,9 +117,6 @@ function getCurrentSunArcPosition(sunriseTime: string, sunsetTime: string): read
 
 onMounted(() => {
     window.addEventListener('resize', updateWidth)  // adds listener to update screenWidth every time viewport changes 
-    console.log(props.sunInfo)
-    console.log(props.uvindexInfo)
-    console.log(props.weatherInfo)
 })  
 
 onBeforeUnmount(() => window.removeEventListener('resize', updateWidth))
