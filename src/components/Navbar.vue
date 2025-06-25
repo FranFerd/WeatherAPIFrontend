@@ -40,7 +40,6 @@
     }) 
   })
 </script>
-
 <template>
   <section>
     <nav class="navbar">
@@ -57,8 +56,6 @@
               <img width="20" height="20" src="https://img.icons8.com/ios/50/expand-arrow--v1.png" alt="expand-arrow" class="dropdown-icon" :class="{'rotate-180' : showDropdown}"/>
             </span>
             <span v-else @click="redirectLogin">Login</span>
-
-            
             <transition name="fade">
               <div v-if="showDropdown && isLoggedIn" class="dropdown-content">
                 <button @click="handleLogout">Logout</button>
@@ -70,14 +67,12 @@
     </nav>
   </section>
 </template>
-
 <style scoped>
 .navbar {
   border-radius: 30px;
   margin-bottom: 25px;
   background-color: #feffda;
 }
-
 .menuItems {
   list-style: none;
   display: flex;
@@ -85,16 +80,13 @@
   justify-content: space-evenly;
   padding: 0;
 }
-
 .menuItems li {
   margin: 20px;
   position: relative;
 }
-
 .dropdown-wrapper {
   position: relative;
 }
-
 .account-box-dropdown {
   display: flex;
   align-items: center;
@@ -102,20 +94,16 @@
   cursor: pointer;
   position: relative;
 }
-
 .account-icon{
   transition: all 0.3s ease;
 }
-
 .dropdown-icon {
   transition: transform 0.3s ease;
   transform-origin: center;
 }
-
 .dropdown-icon.rotate-180 {
   transform: rotate(180deg);
 }
-
 .dropdown-content {
   position: absolute;
   top: 100%;
@@ -127,7 +115,6 @@
   border-radius: 4px;
   overflow: hidden;
 }
-
 .dropdown-content button {
   width: 100%;
   padding: 12px 16px;
@@ -138,22 +125,18 @@
   cursor: pointer;
   font-size: 0.7em;
 }
-
 .dropdown-content button:hover {
   background-color: #ddd;
 }
-
 /* Animation */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.2s ease;
 }
-
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
 }
-
 /* Keep existing hover styles */
 .menuItems li a, 
 .menuItems li div {
@@ -163,12 +146,10 @@
   transition: all 0.3s ease-in-out;
   text-transform: uppercase;
 }
-
 .menuItems li a.active, 
 .menuItems li div.active {
   color: #7cdfdb;
 }
-
 .menuItems li a:hover, 
 .menuItems li div:hover {
   color: #7cdfdb;

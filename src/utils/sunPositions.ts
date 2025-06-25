@@ -11,4 +11,6 @@ export const sunPositions = {
     10: [-10, -10] // no sun
 } as const
 
+export type SunPositionsIndex = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10
+
 export type SunPositions = typeof sunPositions
