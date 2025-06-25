@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, ComputedRef } from 'vue'
 
 import WeatherForDayAverage from './WeatherForDayAverage.vue'
 import SunInfoForDayMain from './SunInfoForDayMain.vue'
@@ -7,7 +7,7 @@ import SunInfoForDayAdditional from './SunInfoForDayAdditional.vue'
 
 import switchDayOfWeek from '@/utils/switchDayOfWeek'
 import switchMonth, { MonthStringIndex } from '@/utils/switchMonth'
-import { sunPositions } from '@/utils/sunPositions'
+import { sunPositions, SunPositionsIndex } from '@/utils/sunPositions'
 
 import type { WeatherDataForWeekRefined } from '@/types/WeatherData'
 import type { SunInfoForWeek } from '@/types/SunInfo'
@@ -28,11 +28,23 @@ const screenWidth = ref<number>(window.innerWidth)
 const isHideSunInfo = isWidthSmaller(1250)
 const isHideLabels = isWidthSmaller(900)
 
-function numberDateToWordDate(numberDate: string): string{ // 2025-06-07 YYYY-MM-DD
-    const date = numberDate.slice(5)
-    const numberMonth: MonthStringIndex = date.slice(0,2)
+function isValidMonth(month: string): month is MonthStringIndex{
+    return [
+        '01', '02', '03', '04', '05', '06',
+        '07', '08', '09', '10', '11', '12'
+    ].includes(month)
+}
+
+function numberDateToWordDate(numberDate: string | number): string{ // numberDate: YYYY-MM-DD
+    const date = String(numberDate).slice(5) // MM-DD
+    const numberMonth: string = date.slice(0,2)
+
+    if(!isValidMonth(numberMonth)){
+        throw new Error(`Invalid month: ${numberMonth}`)
+    }
+    const validNumberMonth: MonthStringIndex = numberMonth 
+
     let numberDay = date.slice(3)
-    
     if(numberDay[0] === '0'){
         numberDay = numberDay.slice(1) // Remove leading 0
     }
@@ -40,46 +52,46 @@ function numberDateToWordDate(numberDate: string): string{ // 2025-06-07 YYYY-MM
     const dateString = new Date(numberDate)
     const dayOfWeek = dateString.getDay() // Returns day of the week using numberDate
     
-    const wordMonth = switchMonth(numberMonth)
+    const wordMonth = switchMonth(validNumberMonth)
     const wordDayOfWeek = switchDayOfWeek(dayOfWeek)
 
     return `${wordDayOfWeek}, ${numberDay} ${wordMonth}`
 }
 
-function isToday(numberDate){
-    if(!numberDate || typeof numberDate !== 'string') return ''
+function isToday(numberDate: string | number): boolean{
+    if(!numberDate || typeof numberDate !== 'string') return false
     const date = numberDate.slice(5)
 
     const currentDateObject = new Date
-    let currentDayOfMonth = currentDateObject.getDate()
-    let currentMonth = currentDateObject.getMonth() + 1 //getMonth is 0-indexed
+    let currentDayOfMonth = String(currentDateObject.getDate())
+    let currentMonth = String(currentDateObject.getMonth() + 1) //getMonth is 0-indexed
 
     if(String(currentDayOfMonth).length === 1){
-        currentDayOfMonth = String(currentDayOfMonth).padStart(2, '0') // Pads with a leading zero if needed (e.g., "9" → "09)
+        currentDayOfMonth = currentDayOfMonth.padStart(2, '0') // Pads with a leading zero if needed (e.g., "9" → "09)
     }
     if(String(currentMonth).length === 1){
-        currentMonth = String(currentMonth).padStart(2, '0')
+        currentMonth = currentMonth.padStart(2, '0')
     }
 
     const today = `${currentMonth}-${currentDayOfMonth}`
 
-    return date == today
+    return date === today
 }
-function isWeekend(numberDate){
-    if(!numberDate || typeof numberDate !== 'string') return ''
+function isWeekend(numberDate: string | number): boolean{
+    if(!numberDate || typeof numberDate !== 'string') return false
     const dateObject = new Date(numberDate)
     const dayOfWeek = dateObject.getDay()
     return dayOfWeek === 0 || dayOfWeek === 6 // 0-indexed. Start with Sunday
 }
 
-function isWidthSmaller(width){ // return true if passed with is smaller that screenWidth
+function isWidthSmaller(width: number): ComputedRef<boolean>{ // return true if passed with is smaller that screenWidth
     return computed(() => screenWidth.value <= width) // computed is to make it reactive
 }
-function updateWidth(){
+function updateWidth(): void{
     screenWidth.value = window.innerWidth
 }
 
-function getCurrentSunArcPosition(sunriseTime, sunsetTime){
+function getCurrentSunArcPosition(sunriseTime: string, sunsetTime: string): readonly [number, number]{
     const [sunriseHours, sunriseMinutes] = sunriseTime.split(':')
     const [sunsetHours, sunsetMinutes] = sunsetTime.split(':')
 
@@ -97,16 +109,14 @@ function getCurrentSunArcPosition(sunriseTime, sunsetTime){
     const minutesSinceSunrise = currentTimeInMinutes - sunriseTimeInMinutes
 
     let coefficient = Math.min(Math.max(minutesSinceSunrise / daylightDuration, 0), 1) // max ensures the value is at least 0 
-    coefficient =  Math.round(coefficient * 10)                                        // min ensures the value is not bigger than 1)
+    coefficient =  Math.round(coefficient * 10)                                        // min ensures the value is not bigger than 1
+    const sunPositionsIndex = Math.min(Math.max(coefficient, 1), 10) as SunPositionsIndex
 
-    return sunPositions[coefficient] || [-10, -10] //sunPositions is exported. Contains [cx, cy] for sun. Positions 0 to 9
+    return sunPositions[sunPositionsIndex] || [-10, -10] //sunPositions is exported. Contains [cx, cy] for sun. Positions 0 to 9
 }                                               // [-10, -10] for polar day/night. Removes the sun from the arc
 
 onMounted(() => {
     window.addEventListener('resize', updateWidth)  // adds listener to update screenWidth every time viewport changes 
-    console.log(props.sunInfo)
-    console.log(props.uvindexInfo)
-    console.log(props.weatherInfo)
 })  
 
 onBeforeUnmount(() => window.removeEventListener('resize', updateWidth))

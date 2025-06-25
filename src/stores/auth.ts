@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 
 import { login, logout, isAuthenticated, authToken, init } from '@/authService/auth'
 
@@ -22,7 +22,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (!token) return null
     try {
       const payload = JSON.parse(atob(token.split('.')[1]))
-      return payload.sub || payload.identity || payload.username
+      return payload.sub || payload.identity || payload.username // Contains username
     } catch {
       return null
     }

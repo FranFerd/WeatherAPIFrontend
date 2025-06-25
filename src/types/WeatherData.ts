@@ -52,4 +52,10 @@ export type WeatherDataForDayRefined = [
     feelsLike?: number,
     windSpeed?: number
 ]
-type TimeOfDay = 'night' | 'morning' | 'afternoon' | 'evening'
+type TimeOfDay = 'night' | 'morning' | 'afternoon' | 'evening' | 'time of day'
+
+export type WeatherDataForDayRefinedBasic = [
+    timeOfDay: TimeOfDay,
+    temperature: number,
+    description: string,
+]

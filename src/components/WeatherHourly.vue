@@ -1,22 +1,28 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue';
-import { weatherIcons } from '@/assets/icons/icons';
-import {weatherMatchersForIcons, weatherMathcersForDisplay} from '@/utils/weatherMatchersForIcons';
-const props = defineProps({
-    dataHourly : {
-        type: Object,
-        required: true
-    }
-})
-const scrollContainer = ref(null)
-const dataHourly = ref([])
 
-function getWeatherIcon(weatherDescription) {
+import { weatherIcons } from '@/assets/icons/icons';
+
+import { weatherMatchersForIcons, weatherMathcersForDisplay } from '@/utils/weatherMatchersForIcons';
+import { WEATHER_ICONS_KEYS } from '@/utils/weatherMatchersForIcons';
+
+import { HourlyInfo } from '@/types/WeatherData';
+
+const props = defineProps<{
+    dataHourly: HourlyInfo
+}>()
+
+const dataHourly = ref<HourlyInfo | null>(null)
+
+const scrollContainer = ref<HTMLElement | null>(null)
+
+function getWeatherIcon(weatherDescription: typeof WEATHER_ICONS_KEYS[number]){
     const iconKey = weatherMatchersForIcons[weatherDescription]
     return weatherIcons[iconKey]? weatherIcons[iconKey] : weatherIcons.defaultWeather;
 }
 
-function handleWheel(e) {  // e is event, passed automatically when user uses mouse wheel.
+function handleWheel(e: WheelEvent): void{  // e is event, passed automatically when user uses mouse wheel.
+    if(!scrollContainer.value) return 
     if (scrollContainer.value.scrollWidth > scrollContainer.value.clientWidth) { // if (total width of the content, incl. the part not currently visible is greater
         e.preventDefault() // Prevent vertical scrolling                            than width of the container that is currently visible(viewport inside the element))
         scrollContainer.value.scrollLeft += e.deltaY // Scroll horizontally instead
@@ -24,15 +30,15 @@ function handleWheel(e) {  // e is event, passed automatically when user uses mo
 }
 
 
-function getCurrentTimeString() {
+function getCurrentTimeString(): string{
     const now = new Date()
     return `${now.getHours().toString().padStart(2,"0")}:00:00` // Pads with a leading zero if needed (e.g., "9" → "09")
 }
 
-function timeWithoutSeconds(time){
+function timeWithoutSeconds(time: string): string{
     return time.slice(0, time.length - 3)
 }
-function scrollToCurrentTime(){
+function scrollToCurrentTime(): void{
     if(!scrollContainer.value || !dataHourly.value) return
 
     const currentTime = getCurrentTimeString()
@@ -61,12 +67,7 @@ onMounted(async () => {
         console.error('Failed to load weather: ', error)
     }
 })  
-
-
-
-
 </script>
-
 <template>
 <div class="hourly-info-label-container">
     <h3 class="hourly-info-label">Hourly Info</h3>
