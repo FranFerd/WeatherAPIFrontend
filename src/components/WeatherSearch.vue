@@ -1,15 +1,17 @@
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'; 
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 
 const router = useRouter();
 const route = useRoute()
-const message = ref(null);
-const city = ref(null);
 
-async function handleSearch(){
+const message = ref<string>('');
+
+const city = ref<string>('');
+
+async function handleSearch(): Promise<void>{
     if (city.value) {
         const formattedCity = city.value.trim().replace(/\s+/g, '-').toLowerCase();
         const isValidAddress = await checkAddress(formattedCity);
@@ -30,33 +32,18 @@ async function handleSearch(){
     }
 }
 
-async function checkAddress(location){
-        try{
-            const response = await axios.get(`http://127.0.0.1:5000/weather/hourly/check-address/${location}`)
-            if (response.data) return true
-            return false
-        }
-        catch(error){
-            if(error.response){
-                if(error.response.data?.message === 'Incorrect location'){
-                    message.value = 'Incorrect location'
-                }
-                else{
-                    message.value = 'Error checking address'
-                }
-            }
-            else if(error.request){
-                message.value = 'Network error - no response'
-            }
-            else{
-                message.value = 'Request setup error'
-            }
-            console.error(error)
-            }
+async function checkAddress(location: string): Promise<boolean | null>{
+    try{
+        const response = await axios.get(`http://127.0.0.1:5000/weather/hourly/check-address/${location}`)
+        if (response.data) return true 
+        return false
     }
-
+    catch(error){
+        console.error(error)
+        return null
+    }
+}
 </script>
-
 <template>
     <div class="weather-search">
         <form @submit.prevent="handleSearch">
@@ -80,7 +67,6 @@ async function checkAddress(location){
     justify-content: center;
     margin: 20px 0;
 }
-
 .search-input {
     padding: 10px;
     font-size: 16px;
@@ -88,7 +74,6 @@ async function checkAddress(location){
     border-radius: 4px;
     margin-right: 10px;
 }
-
 .search-button {
     padding: 10px 20px;
     font-size: 16px;
@@ -98,7 +83,6 @@ async function checkAddress(location){
     border-radius: 4px;
     cursor: pointer;
 }
-
 .search-button:hover {
     background-color: #0056b3;
     transition: background-color 0.3s ease;
