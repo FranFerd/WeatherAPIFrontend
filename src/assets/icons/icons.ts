@@ -8,4 +8,4 @@ export const weatherIcons = {
     "clearDay" : '/src/assets/icons/clear-day.png',
     "snow" : '/src/assets/icons/snow.png',
     "fog" : '/src/assets/icons/fog.png'
-}
+} as const

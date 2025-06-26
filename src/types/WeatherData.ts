@@ -22,7 +22,6 @@ export interface HourlyInfo {
     uvindex: number,
     windspeed: number
 } 
-export type HourlyInfoKey = keyof HourlyInfo
 export type ItemToPushKey = 'temp' | 'icon' | 'feelslike' | 'windspeed'
 
 export interface DataGeneralForDay {
