@@ -9,16 +9,30 @@ import { WEATHER_ICONS_KEYS } from '@/utils/weatherMatchersForIcons';
 import { HourlyInfo } from '@/types/WeatherData';
 
 const props = defineProps<{
-    dataHourly: HourlyInfo
+    dataHourly: HourlyInfo[]
 }>()
 
-const dataHourly = ref<HourlyInfo | null>(null)
+const dataHourly = ref<HourlyInfo[] | null>(null)
 
 const scrollContainer = ref<HTMLElement | null>(null)
 
-function getWeatherIcon(weatherDescription: typeof WEATHER_ICONS_KEYS[number]){
-    const iconKey = weatherMatchersForIcons[weatherDescription]
-    return weatherIcons[iconKey]? weatherIcons[iconKey] : weatherIcons.defaultWeather;
+function isValidWeatherDescription(weatherDescription: string): weatherDescription is typeof WEATHER_ICONS_KEYS[number]{
+    return [
+        'partly-cloudy-day', 'partly-cloudy-night', 'cloudy', 'rain',
+        'clear-night', 'clear-day', 'snow', 'fog'
+        ].includes(weatherDescription)
+} 
+
+function getWeatherIcon(weatherDescription: string): string{
+    return isValidWeatherDescription(weatherDescription)
+        ? weatherIcons[weatherMatchersForIcons[weatherDescription]]
+        : weatherIcons.defaultWeather
+}
+
+function getWeatherDescriptionOnHover(weatherDescription: string): string{
+    return isValidWeatherDescription(weatherDescription)
+        ? weatherMathcersForDisplay[weatherDescription]
+        : 'weather description'
 }
 
 function handleWheel(e: WheelEvent): void{  // e is event, passed automatically when user uses mouse wheel.
@@ -29,38 +43,37 @@ function handleWheel(e: WheelEvent): void{  // e is event, passed automatically 
     }
 }
 
-
 function getCurrentTimeString(): string{
     const now = new Date()
     return `${now.getHours().toString().padStart(2,"0")}:00:00` // Pads with a leading zero if needed (e.g., "9" → "09")
 }
 
-function timeWithoutSeconds(time: string): string{
+function getTimeWithoutSeconds(time: string): string{
     return time.slice(0, time.length - 3)
 }
 function scrollToCurrentTime(): void{
     if(!scrollContainer.value || !dataHourly.value) return
 
-    const currentTime = getCurrentTimeString()
-    const index = dataHourly.value.findIndex(item => item.datetime === currentTime)  // Search through dataHourly and find item where item.datetime === currentTIme
+    const currentTime: string = getCurrentTimeString()
+    const index: number = dataHourly.value.findIndex((item: HourlyInfo) => item.datetime === currentTime)  // Search through dataHourly and find item where item.datetime === currentTIme
 
     if(index !== -1){
-        const container = scrollContainer.value;
-        const items = container.querySelectorAll('.scroll-item');
-    if (items[index]) {
-        items[index].scrollIntoView({
-            behavior: 'smooth',
-            block: 'nearest',
-            inline: 'center'
-        });
+        const container: HTMLElement = scrollContainer.value
+        const items = container.querySelectorAll<HTMLElement>('.scroll-item')
+        if (items[index]) {
+            items[index].scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest',
+                inline: 'center'
+            })
+        }
     }
-}
 }
 
 onMounted(async () => {
     try{
         dataHourly.value = props.dataHourly  // Props are not ref, so .value is an error(undefined)
-        await nextTick() // Let the DOM fully render
+        await nextTick() // Wait for the DOM to fully render before running code below
         scrollToCurrentTime() // Now scroll
     }
     catch(error){
@@ -78,10 +91,10 @@ onMounted(async () => {
     <div class="horizontal-scroll-container" ref="scrollContainer" @wheel.prevent="handleWheel">
         <div v-for="(item, index) in dataHourly" :key="index" class="scroll-item">
             <div :class="{ 'current-time': item.datetime === getCurrentTimeString(), 'hour-label' : item.datetime !== getCurrentTimeString() }">
-                {{ item.datetime === getCurrentTimeString() ? 'Now' : timeWithoutSeconds(item.datetime) }}
+                {{ item.datetime === getCurrentTimeString() ? 'Now' : getTimeWithoutSeconds(item.datetime) }}
             </div>
             <div>
-                <img :src="getWeatherIcon(item.icon)" :alt="item.icon" class="weatherIcon" :title="weatherMathcersForDisplay[item.icon]">
+                <img :src="getWeatherIcon(item.icon)" :alt="item.icon" class="weatherIcon" :title="getWeatherDescriptionOnHover(item.icon)">
             </div>
             <div :class="{temperature : item.temp > 0 || item.temp < 0, 'temperature-shift-right' : item.temp === 0}"> <!--shift to right if it's 0 -->
                 <div>                                                                                      <!-- which doesn't have + or -. Alignment -->     
