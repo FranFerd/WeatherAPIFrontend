@@ -1,11 +1,4 @@
 <script setup lang="ts">
-// import { computed } from 'vue';
-// import { useRouter } from 'vue-router';
-// import { useAuthStore } from '@/stores/auth';
-
-// const auth = useAuthStore()
-// const isLoggedIn = computed(() => auth.isLoggedIn)
-// const router = useRouter()
 </script>
 <template>
     <div class="introduction">
