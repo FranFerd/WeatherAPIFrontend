@@ -28,7 +28,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
   
-  async function userLogin(credentials: Credentials): Promise<void> {
+  async function userLogin(credentials: URLSearchParams): Promise<void> {
     await login(credentials)
     username.value = decodeUsername(authToken.value)
   }

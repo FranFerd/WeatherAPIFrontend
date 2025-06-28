@@ -8,13 +8,13 @@ import WeatherTodayGeneral from '@/components/WeatherTodayGeneral.vue';
 
 import calculateDayLength from '@/utils/calculateDayLength';
 import { getUvDescription, setUvIndexHourly, showHighUvHoursMessage } from '@/utils/uvIndex';
-import { DataGeneralForDay, HourlyInfo, WeatherDataForDayFull, WeatherDataForWeekRaw } from '@/types/WeatherData';
+import { DataGeneralForDay, FetchedWeatherData, HourlyInfo, WeatherDataForDayFull, WeatherDataForWeekRaw } from '@/types/WeatherData';
 import { UvindexHourlyDescription } from '@/types/UvIndexData';
 
 
 const route = useRoute()
 
-const data = ref<WeatherDataForDayFull | null>(null)
+const dataForDayFull = ref<WeatherDataForDayFull | null>(null)
 const dataHourly = ref<HourlyInfo[] | null>(null)
 const dataGeneral = ref<DataGeneralForDay | null>(null)
 
@@ -32,9 +32,9 @@ watch(() => route.params.address, (newAddress) => {
     addressUrl.value = String(newAddress)
 }, {immediate:true})
 
-async function fetchWeatherToday(location: string): Promise<WeatherDataForWeekRaw | null> {   
+async function fetchWeatherToday(location: string): Promise<FetchedWeatherData | null> {   
     try{
-        const response = await axios.get(`http://127.0.0.1:5000/weather/hourly/${location}/1`) // '0' to get 1 day - today
+        const response = await axios.get(`http://127.0.0.1:8000/weather/hourly/${location}/1`) // '0' to get 1 day - today
         return response.data
     }
     catch(error){
@@ -73,9 +73,9 @@ onMounted(async() => {
     try{
         const fetchedWeatherData = await fetchWeatherToday(addressUrl.value)
         if(fetchedWeatherData){
-            resolvedAddress.value = fetchedWeatherData.resolvedAddress || ''
-            data.value = fetchedWeatherData.days[0] || null
-            dataHourly.value = fetchedWeatherData.days[0].hours || null
+            resolvedAddress.value = fetchedWeatherData.weather_data.resolvedAddress || ''
+            dataForDayFull.value = fetchedWeatherData.weather_data.days[0] || null
+            dataHourly.value = dataForDayFull.value.hours || null
         }
         
         if(dataHourly.value){
@@ -84,9 +84,9 @@ onMounted(async() => {
           highUvHoursMessage.value = showHighUvHoursMessage(uvindexHourly.value)
         } 
 
-        if(data.value) {
-            dayLength.value = calculateDayLength(data.value)
-            setDataGeneral(data.value)
+        if(dataForDayFull.value) {
+            dayLength.value = calculateDayLength(dataForDayFull.value)
+            setDataGeneral(dataForDayFull.value)
         }
     }
     catch(error){
@@ -98,7 +98,7 @@ onMounted(async() => {
 
 <template>
 <div class="weather-info" v-if="!message">
-    <p class="weather-today" v-if="data">{{ data.datetime }}</p>
+    <p class="weather-today" v-if="dataForDayFull">{{ dataForDayFull.datetime }}</p>
     <p class="weather-today">{{ resolvedAddress }}</p>
 
     <hr>

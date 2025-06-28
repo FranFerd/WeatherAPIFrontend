@@ -24,12 +24,18 @@ const credentials = ref<Credentials>({
 })
 
 async function handleLogin(): Promise<void> {
-  try {
-    await authStore.login(credentials.value)
-    
-    console.log('Username:', username.value) // should show username
+  if(!credentials.value.username || !credentials.value.password){
+    window.alert('Please fill in both username and password')
+    return
+  }
 
-    console.log('Status:', isLoggedIn.value)
+  const formData = new URLSearchParams()
+  formData.append('username', credentials.value.username)
+  formData.append('password', credentials.value.password)
+
+  try {
+    await authStore.login(formData)
+  
     message.value = 'Logged in successfully'
 
     // Redirect on success
@@ -185,6 +191,6 @@ async function handleSignUp(){
   /* position: relative; */
   margin-top: 2em;
   font-size: 2em;
-  color: rgb(0, 163, 0);
+  color: rgb(0, 174, 0);
 }
 </style>
