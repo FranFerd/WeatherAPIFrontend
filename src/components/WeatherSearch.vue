@@ -34,7 +34,7 @@ async function handleSearch(): Promise<void>{
 
 async function checkAddress(location: string): Promise<boolean | null>{
     try{
-        const response = await axios.get(`http://127.0.0.1:5000/weather/hourly/check-address/${location}`)
+        const response = await axios.get(`http://127.0.0.1:8000/weather/hourly/check-address/${location}`)
         if (response.data) return true 
         return false
     }

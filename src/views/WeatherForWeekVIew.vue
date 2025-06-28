@@ -17,7 +17,8 @@ import type {
     WeatherDataForDayRefined, 
     WeatherDataForDayFull, 
     HourlyInfo, 
-    ItemToPushKey
+    ItemToPushKey,
+    FetchedWeatherData
 } from '@/types/WeatherData';
 
 import type { SunInfoForWeek } from '@/types/SunInfo';
@@ -48,9 +49,9 @@ function isString(value: unknown): value is string {
     return typeof value === 'string'
 }
 
-async function fetchWeatherData(location: string): Promise<WeatherDataForWeekRaw | null>{
+async function fetchWeatherData(location: string): Promise<FetchedWeatherData | null>{
     try{
-        const response = await axios.get(`http://127.0.0.1:5000/weather/hourly/${location}/7`)
+        const response = await axios.get(`http://127.0.0.1:8000/weather/hourly/${location}/7`)
         return response.data
     }
     catch(error){
@@ -140,10 +141,10 @@ function fillData(data: HourlyInfo[], item: ItemToPushKey, date: string): void{
 
 onMounted(async() => {
     // No need for try-catch, fetchWeatherData already has it. Refer to WeatherTodayView for comparison
-    const weatherData = await fetchWeatherData(addressUrl.value)
-    if(weatherData){
-        dataWeeklyRaw.value = weatherData
-        resolvedAddress.value = weatherData.resolvedAddress
+    const fetchedWeatherData = await fetchWeatherData(addressUrl.value)
+    if(fetchedWeatherData){
+        dataWeeklyRaw.value = fetchedWeatherData.weather_data
+        resolvedAddress.value = fetchedWeatherData.weather_data.resolvedAddress
         if(dataWeeklyRaw.value) refineData(dataWeeklyRaw.value.days)
     }
 })

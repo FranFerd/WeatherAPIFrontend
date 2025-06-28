@@ -1,3 +1,7 @@
+export interface FetchedWeatherData {
+    weather_data: WeatherDataForWeekRaw
+}
+
 export interface WeatherDataForDayFull {
     conditions: string,
     datetime: string,

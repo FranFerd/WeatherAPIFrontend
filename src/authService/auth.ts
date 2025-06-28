@@ -20,9 +20,9 @@ function clearAuth(): void {
   delete axios.defaults.headers.common['Authorization']
 }
 
-async function login(credentials: Credentials): Promise<void> {
+async function login(credentials: URLSearchParams): Promise<void> {
   try {
-    const response = await axios.post('http://localhost:5000/login', credentials)
+    const response = await axios.post('http://localhost:8000/token', credentials)
     setAuth(response.data.access_token)
   } catch (error) {
     clearAuth()
@@ -32,7 +32,7 @@ async function login(credentials: Credentials): Promise<void> {
 
 async function logout(): Promise<void>{ // No logout endpoint for now
   try{
-    await axios.post('https://localhost:5000/logout', {}, { //Usually the logout request has an empty body ({}) but requires an Authorization header to identify the user token.
+    await axios.post('https://localhost:8000/logout', {}, { //Usually the logout request has an empty body ({}) but requires an Authorization header to identify the user token.
       headers: {                                          // Axios can’t guess to add Authorization headers automatically, so I explicitly add:
         Authorization: `Bearer ${authToken.value}`
       }
