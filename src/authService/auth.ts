@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { ref } from 'vue'
 
-import type { Credentials } from '@/types/User'
+import { Credentials } from '@/types/User'
 
 const isAuthenticated = ref(false)
 const authToken = ref<string | null>(localStorage.getItem('token') || null) // JWT token ref
@@ -24,10 +24,15 @@ async function login(credentials: URLSearchParams): Promise<void> {
   try {
     const response = await axios.post('http://localhost:8000/token', credentials)
     setAuth(response.data.access_token)
-  } catch (error) {
+  } 
+  catch (error) {
     clearAuth()
     throw error
   }
+}
+
+async function signup(credentials: Credentials){
+  return axios.post("http://localhost:8000/signup", credentials)
 }
 
 async function logout(): Promise<void>{ // No logout endpoint for now
@@ -53,7 +58,8 @@ function init(): void {
 export { 
   isAuthenticated,
   authToken, 
-  login, 
+  login,
+  signup, 
   clearAuth, 
   init, 
   logout }

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-import { login, logout, isAuthenticated, authToken, init } from '@/authService/auth'
+import { login, logout, isAuthenticated, authToken, init, signup } from '@/authService/auth'
 
 import type { Credentials } from '@/types/User'
 
@@ -37,6 +37,11 @@ export const useAuthStore = defineStore('auth', () => {
     await logout()
     username.value = null
   }
+
+  async function userSignup(credentials: Credentials){
+    const response = await signup(credentials)
+    return response.status
+  }
   
   return {
     username,
@@ -44,5 +49,6 @@ export const useAuthStore = defineStore('auth', () => {
     initialize,
     login: userLogin,
     logout: userLogout,
+    signup: userSignup
   }
 })
