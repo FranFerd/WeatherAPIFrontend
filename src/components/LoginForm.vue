@@ -2,19 +2,19 @@
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
-import { storeToRefs } from 'pinia'
 
 import { useAuthStore } from '@/stores/auth'
 
 import type { Credentials } from '@/types/User' 
+import { handleApiErorr } from '@/utils/error'
 
 const router = useRouter()
 const route = useRoute()
 
 const authStore = useAuthStore()
-const {username, isLoggedIn} = storeToRefs(authStore)
 
 const message = ref('')
+const isErrorMessage = ref(false)
 
 const isSignUp = ref(false)
 
@@ -23,9 +23,16 @@ const credentials = ref<Credentials>({
   password: ''
 })
 
-async function handleLogin(): Promise<void> {
-  if(!credentials.value.username || !credentials.value.password){
+function isValidCredentials(username: string, password: string): boolean{
+  if(!username || !password){
     window.alert('Please fill in both username and password')
+    return false
+  }
+  return true
+}
+
+async function handleLogin(): Promise<void> {
+  if(!isValidCredentials(credentials.value.username, credentials.value.password)){
     return
   }
 
@@ -35,26 +42,20 @@ async function handleLogin(): Promise<void> {
 
   try {
     await authStore.login(formData)
-  
+    
+    isErrorMessage.value = false
     message.value = 'Logged in successfully'
 
-    // Redirect on success
     const redirect = route.query.redirect || '/home'
     setTimeout(() => {
       router.push(String(redirect))
     }, 1500);
 
-  } catch (error: unknown) {
-    if(axios.isAxiosError(error)){
-      console.error('Response data:', error.response?.data)
-      alert(error.response?.data?.msg || 'Login failed' + error.message)
-    }
-    else if(error instanceof Error){
-      alert('Login failed' + error.message)
-    }
-    else{
-      alert('Login failed due to an unknown error')
-    }
+  } 
+  catch (error: unknown) {
+    isErrorMessage.value = true
+    message.value = handleApiErorr(error, 'Login failed due to an unknown error')
+    console.error("Login failed: ", error)
   }
 }
 
@@ -62,21 +63,41 @@ function handleSwitch(): void{
   isSignUp.value = !isSignUp.value
 }
 
-async function handleSignUp(){
-  
+async function handleSignUp(): Promise<void>{
+  if(!isValidCredentials(credentials.value.username, credentials.value.password)){
+    return
+  }
+  const credentialsData = {
+    username: credentials.value.username,
+    password: credentials.value.password
+  }
+
+  try{
+    const status = await authStore.signup(credentialsData)
+    if(status == 200){
+      isErrorMessage.value = false
+      message.value = 'Account created successfully'
+    }
+  }
+  catch (error: unknown) {
+    isErrorMessage.value = true
+    message.value = handleApiErorr(error, 'Signup failed due to an unknown error')
+    console.error("Sign error: ", error)
+  }
 }
 </script>
 <template>
+<div class="login">
   <div class="login-container" v-if="!isSignUp">
     <h1 class="login-label">Login</h1>
     <form @submit.prevent="handleLogin">
       <label for="username">Username(4-16 characters)</label>
-      <div class="username-box">
-        <input v-model="credentials.username" placeholder="Username" id="username" minlength="4" maxlength="16" class="username-input">
+      <div class="input-box" :class="{error: isErrorMessage}">
+        <input v-model="credentials.username" placeholder="Username" id="username" minlength="4" maxlength="16" class="input">
       </div>
       <label for="password">Password(4-16 characters)</label>
-      <div class="password-box">
-        <input v-model="credentials.password" type="password" placeholder="Password" minlength="4" maxlength="16" id="password" class="password-input">
+      <div class="input-box" :class="{error: isErrorMessage}">
+        <input v-model="credentials.password" type="password" placeholder="Password" minlength="4" maxlength="16" id="password" class="input">
       </div>
       <div class="submit-box">
         <button type="submit" class="login-button">Login</button>
@@ -88,20 +109,20 @@ async function handleSignUp(){
         </span>
       </div>
     </form>
-    <div class="message">
+    <!-- <div class="message">
     {{ message }}
-    </div>
+    </div> -->
   </div>
   <div class="login-container" v-if="isSignUp">
     <h1 class="login-label">Sign up</h1>
     <form @submit.prevent="handleSignUp">
       <label for="username">Username(4-16 characters)</label>
-      <div class="username-box">
-        <input v-model="credentials.username" placeholder="Username" id="username" minlength="4" maxlength="16" class="username-input">
+      <div class="input-box" :class="{error: isErrorMessage}">
+        <input v-model="credentials.username" placeholder="Username" id="username" minlength="4" maxlength="16" class="input">
       </div>
       <label for="password">Password(4-16 characters)</label>
-      <div class="password-box">
-        <input v-model="credentials.password" type="password" placeholder="Password" minlength="4" maxlength="16" id="password" class="password-input">
+      <div class="input-box" :class="{error: isErrorMessage}">
+        <input v-model="credentials.password" type="password" placeholder="Password" minlength="4" maxlength="16" id="password" class="input">
       </div>
       <div class="submit-box">
         <button type="submit" class="login-button">Create account</button>
@@ -113,26 +134,38 @@ async function handleSignUp(){
         </span>
       </div>
     </form>
-    <div class="message">
+    <!-- <div class="message">
     {{ message }}
-    </div>
+    </div> -->
   </div>
+  <div class="message" :class="{error: isErrorMessage}">
+    {{ message }}
+  </div>
+</div>
 </template>
 <style scoped>
-.login-container{
+.login{
   display: flex;
-  margin-top: 10%;
   flex-direction: column;
   align-items: center;
+}
+.login-container{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10%;
 }
 .login-label{
   margin-bottom: 10px;
 }
-.username-box{
+.input-box{
   margin-top: 10px;
   margin-bottom: 10px;
 }
-.username-input{
+.input-box.error{
+  box-shadow: 0px 0px 10px rgb(252, 89, 89);
+}
+.input{
   font-size: 1em;
   width: 400px;
   height: 20px;
@@ -140,25 +173,9 @@ async function handleSignUp(){
   border-radius: 5px;
   border: none;
 }
-.username-input:focus{
+.input:focus{
   box-shadow: 0px 0px 10px rgb(89, 89, 252);
   outline: none;
-}
-.password-input{
-  font-size: 1em;
-  width: 400px;
-  height: 20px;
-  padding: 8px;
-  border-radius: 5px;
-  border: none
-}
-.password-input:focus{
-  box-shadow: 0px 0px 20px rgb(89, 89, 252);
-  outline: none;
-}
-.password-input{
-  margin-top: 10px;
-  margin-bottom: 10px;
 }
 .login-button, .signup-button{
   height: 30px;
@@ -188,9 +205,12 @@ async function handleSignUp(){
   justify-content: center;
 }
 .message{
-  /* position: relative; */
+
   margin-top: 2em;
   font-size: 2em;
   color: rgb(0, 174, 0);
+}
+.message.error{
+  color: red;
 }
 </style>
