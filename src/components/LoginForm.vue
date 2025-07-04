@@ -5,8 +5,10 @@ import axios from 'axios'
 
 import { useAuthStore } from '@/stores/auth'
 
-import type { Credentials } from '@/types/User' 
 import { handleApiErorr } from '@/utils/error'
+import { credentialsToUrlSearchParams } from '@/utils/credentials'
+
+import type { Credentials } from '@/types/User' 
 
 const router = useRouter()
 const route = useRoute()
@@ -15,8 +17,8 @@ const authStore = useAuthStore()
 
 const message = ref('')
 const isErrorMessage = ref(false)
-
 const isSignUp = ref(false)
+const isSubmitting = ref(false)
 
 const credentials = ref<Credentials>({
   username: '',
@@ -35,25 +37,26 @@ async function handleLogin(): Promise<void> {
   if(!isValidCredentials(credentials.value.username, credentials.value.password)){
     return
   }
+  isSubmitting.value = true
 
-  const formData = new URLSearchParams()
-  formData.append('username', credentials.value.username)
-  formData.append('password', credentials.value.password)
+  const formData = credentialsToUrlSearchParams(credentials.value)
 
   try {
-    await authStore.login(formData)
-    
-    isErrorMessage.value = false
-    message.value = 'Logged in successfully'
+    const response = await authStore.login(formData)
+    if(response){
+      isErrorMessage.value = false
+      message.value = 'Logged in successfully'
 
-    const redirect = route.query.redirect || '/home'
-    setTimeout(() => {
-      router.push(String(redirect))
-    }, 1500);
-
+      const redirect = route.query.redirect || '/home'
+      setTimeout(() => {
+        router.push(String(redirect))
+        isSubmitting.value = false
+      }, 1500);
+    }
   } 
   catch (error: unknown) {
     isErrorMessage.value = true
+    isSubmitting.value = false
     message.value = handleApiErorr(error, 'Login failed due to an unknown error')
     console.error("Login failed: ", error)
   }
@@ -67,20 +70,29 @@ async function handleSignUp(): Promise<void>{
   if(!isValidCredentials(credentials.value.username, credentials.value.password)){
     return
   }
+  isSubmitting.value = true
+
   const credentialsData = {
     username: credentials.value.username,
     password: credentials.value.password
   }
 
   try{
-    const status = await authStore.signup(credentialsData)
-    if(status == 200){
-      isErrorMessage.value = false
-      message.value = 'Account created successfully'
+    await authStore.signup(credentialsData)
+    await authStore.login(credentialsToUrlSearchParams(credentialsData)) 
+
+    isErrorMessage.value = false
+    message.value = 'Account created and logged in successfully'
+
+    const redirect = route.query.redirect || '/home'
+    setTimeout(() => {
+      router.push(String(redirect))
+      isSubmitting.value = false
+    }, 1500)
     }
-  }
   catch (error: unknown) {
     isErrorMessage.value = true
+    isSubmitting.value = false
     message.value = handleApiErorr(error, 'Signup failed due to an unknown error')
     console.error("Sign error: ", error)
   }
@@ -93,50 +105,44 @@ async function handleSignUp(): Promise<void>{
     <form @submit.prevent="handleLogin">
       <label for="username">Username(4-16 characters)</label>
       <div class="input-box" :class="{error: isErrorMessage}">
-        <input v-model="credentials.username" placeholder="Username" id="username" minlength="4" maxlength="16" class="input">
+        <input v-model="credentials.username" :disabled="isSubmitting" placeholder="Username" id="username" minlength="4" maxlength="16" class="input">
       </div>
       <label for="password">Password(4-16 characters)</label>
       <div class="input-box" :class="{error: isErrorMessage}">
-        <input v-model="credentials.password" type="password" placeholder="Password" minlength="4" maxlength="16" id="password" class="input">
+        <input v-model="credentials.password" :disabled="isSubmitting" type="password" placeholder="Password" minlength="4" maxlength="16" id="password" class="input">
       </div>
       <div class="submit-box">
-        <button type="submit" class="login-button">Login</button>
+        <button type="submit" :disabled="isSubmitting" class="login-button">Login</button>
         <span class="switch-box">
           <div class="switch-box__wrapper">
             <label>Not logged in?</label>
           </div>
-          <button type="button" class="signup-button" @click="handleSwitch">Sign up</button>
+          <button type="button" :disabled="isSubmitting" class="signup-button" @click="handleSwitch">Sign up</button>
         </span>
       </div>
     </form>
-    <!-- <div class="message">
-    {{ message }}
-    </div> -->
   </div>
   <div class="login-container" v-if="isSignUp">
     <h1 class="login-label">Sign up</h1>
     <form @submit.prevent="handleSignUp">
       <label for="username">Username(4-16 characters)</label>
       <div class="input-box" :class="{error: isErrorMessage}">
-        <input v-model="credentials.username" placeholder="Username" id="username" minlength="4" maxlength="16" class="input">
+        <input v-model="credentials.username" :disabled="isSubmitting" placeholder="Username" id="username" minlength="4" maxlength="16" class="input">
       </div>
       <label for="password">Password(4-16 characters)</label>
       <div class="input-box" :class="{error: isErrorMessage}">
-        <input v-model="credentials.password" type="password" placeholder="Password" minlength="4" maxlength="16" id="password" class="input">
+        <input v-model="credentials.password" :disabled="isSubmitting" type="password" placeholder="Password" minlength="4" maxlength="16" id="password" class="input">
       </div>
       <div class="submit-box">
-        <button type="submit" class="login-button">Create account</button>
+        <button type="submit" :disabled="isSubmitting" class="login-button">Create account</button>
         <span class="switch-box">
           <div class="switch-box__wrapper">
             <label>Have an account?</label>
           </div>
-          <button type="button" class="signup-button" @click="handleSwitch">Login</button>
+          <button type="button" :disabled="isSubmitting" class="signup-button" @click="handleSwitch">Login</button>
         </span>
       </div>
     </form>
-    <!-- <div class="message">
-    {{ message }}
-    </div> -->
   </div>
   <div class="message" :class="{error: isErrorMessage}">
     {{ message }}

@@ -33,11 +33,6 @@
 
   onMounted(async() => {
     await authStore.initialize()
-    console.log('Current auth state:', {
-      isLoggedIn: isLoggedIn.value,
-      username: username.value,
-      token: localStorage.getItem('token')
-    }) 
   })
 </script>
 <template>
