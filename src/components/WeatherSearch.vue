@@ -12,35 +12,50 @@ const message = ref<string>('');
 const city = ref<string>('');
 
 async function handleSearch(): Promise<void>{
-    if (city.value) {
-        const formattedCity = city.value.trim().replace(/\s+/g, '-').toLowerCase();
-        const isValidAddress = await checkAddress(formattedCity);
-        if (!isValidAddress) {
-            message.value = 'Invalid address. Please try again.';
-            return;
+    try{
+        if (!city.value) {
+            alert('Please enter a city name.')
+            return
         }
 
-        if(route.path.includes('today')){
-            router.push(`/weather/today/${formattedCity}`);
+            const formattedCity = city.value.trim().replace(/\s+/g, '-').toLowerCase();
+            const isValidAddress = await checkAddress(formattedCity);
+            if (!isValidAddress) {
+                message.value = 'Invalid address. Please try again.';
+                return;
+            }
+    
+            if(route.path.includes('today')){
+                router.push(`/weather/today/${formattedCity}`);
+            }
+            else if(route.path.includes('week')){
+                router.push(`/weather/week/${formattedCity}`);
+            }
+        } 
+    catch(error: unknown){
+        if (axios.isAxiosError(error)){
+            message.value = error.response?.data.detail || "Request failed"
         }
-        else if(route.path.includes('week')){
-            router.push(`/weather/week/${formattedCity}`);
+        else if (error instanceof Error){
+            message.value = error.message
         }
-    } 
-    else {
-        alert('Please enter a city name.');
+        else {
+            message.value = "An unknown error occured"
+        }
     }
 }
 
 async function checkAddress(location: string): Promise<boolean | null>{
     try{
         const response = await axios.get(`http://127.0.0.1:8000/weather/hourly/check-address/${location}`)
-        if (response.data) return true 
-        return false
+        return !!response.data
     }
     catch(error){
-        console.error(error)
-        return null
+        if (axios.isAxiosError(error)){
+            throw error
+        }
+        console.error("Unexpected error: ", error)
+        throw new Error("Unexpected error occured")
     }
 }
 </script>

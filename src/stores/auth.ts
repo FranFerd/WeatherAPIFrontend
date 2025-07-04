@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-import { login, logout, isAuthenticated, authToken, init, signup } from '@/authService/auth'
+import { login, logout, isAuthenticated, authToken, init, signup, clearAuth, setAuth } from '@/authService/auth'
 
-import type { Credentials } from '@/types/User'
+import type { Credentials, TokenData, UserDb } from '@/types/User'
 
 export const useAuthStore = defineStore('auth', () => {
   const username = ref<string | null>(null)
@@ -28,9 +28,17 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
   
-  async function userLogin(credentials: URLSearchParams): Promise<void> {
-    await login(credentials)
-    username.value = decodeUsername(authToken.value)
+  async function userLogin(credentials: URLSearchParams): Promise<TokenData> {
+    try{
+      const tokenData = await login(credentials)
+      setAuth(tokenData.access_token)
+      username.value = decodeUsername(authToken.value)
+      return tokenData
+    }
+    catch(error){
+      clearAuth()
+      throw error
+    }
   }
   
   async function userLogout(): Promise<void> {
@@ -38,9 +46,8 @@ export const useAuthStore = defineStore('auth', () => {
     username.value = null
   }
 
-  async function userSignup(credentials: Credentials){
-    const response = await signup(credentials)
-    return response.status
+  async function userSignup(credentials: Credentials): Promise<UserDb>{
+    return await signup(credentials) // No catch, because no need for clearing tokens, logging. Unlike userLogin
   }
   
   return {

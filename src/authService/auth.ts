@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { ref } from 'vue'
 
-import { Credentials } from '@/types/User'
+import { Credentials, TokenData, UserDb } from '@/types/User'
 
 const isAuthenticated = ref(false)
 const authToken = ref<string | null>(localStorage.getItem('token') || null) // JWT token ref
@@ -20,33 +20,23 @@ function clearAuth(): void {
   delete axios.defaults.headers.common['Authorization']
 }
 
-async function login(credentials: URLSearchParams): Promise<void> {
-  try {
-    const response = await axios.post('http://localhost:8000/token', credentials)
-    setAuth(response.data.access_token)
-  } 
-  catch (error) {
-    clearAuth()
-    throw error
-  }
+async function login(credentials: URLSearchParams): Promise<TokenData> {
+  const response = await axios.post('http://localhost:8000/token', credentials)
+  return response.data
 }
 
-async function signup(credentials: Credentials){
-  return axios.post("http://localhost:8000/signup", credentials)
+async function signup(credentials: Credentials): Promise<UserDb>{
+  const response = await axios.post("http://localhost:8000/signup", credentials)
+  return response.data
 }
 
 async function logout(): Promise<void>{ // No logout endpoint for now
-  try{
     await axios.post('https://localhost:8000/logout', {}, { //Usually the logout request has an empty body ({}) but requires an Authorization header to identify the user token.
       headers: {                                          // Axios can’t guess to add Authorization headers automatically, so I explicitly add:
         Authorization: `Bearer ${authToken.value}`
       }
     })
-  } finally{
-    clearAuth()
-    window.location.assign('/login?logout=sucess')
-  }
-}
+  } 
 
 function init(): void {
   if (authToken.value) {
@@ -61,5 +51,6 @@ export {
   login,
   signup, 
   clearAuth, 
+  setAuth,
   init, 
   logout }
